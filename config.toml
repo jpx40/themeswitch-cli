@@ -1,0 +1,8 @@
+
+[applications_theme]
+kitty = true
+waybar = true
+rofi = true
+wallpaper = true
+neovim = false
+code = true
