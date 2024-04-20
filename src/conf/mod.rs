@@ -5,7 +5,7 @@ use std::{fs::File, io::Read, path::Path};
 
 use crate::wallpaper::WallpaperList;
 
-pub fn read_config(path: String) -> Result<WallpaperList, String> {
+pub fn read_wallpaper_config(path: String) -> Result<WallpaperList, String> {
     if !Path::new(&path).exists() && !Path::new(&path).is_file() {
         return Err("File not found".to_string());
     }
