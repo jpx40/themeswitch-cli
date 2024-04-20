@@ -1,0 +1,11 @@
+[theme]
+Material-Sakura = { theme = "Material-Sakura", enabled = false, id = 6 }
+Decay-Green = { theme = "Decay-Green", enabled = false, id = 3 }
+Catppuccin-Mocha = { theme = "Catppuccin-Mocha", enabled = true, id = 1 }
+Catppuccin-Latte = { theme = "Catppuccin-Latte", enabled = false, id = 2 }
+Rose-Pine = { theme = "Rose-Pine", enabled = false, id = 4 }
+Tokyo-Night = { theme = "Tokyo-Night", enabled = false, id = 5 }
+Graphite-Mono = { theme = "Graphite-Mono", enabled = false, id = 7 }
+Cyberpunk-Edge = { theme = "Cyberpunk-Edge", enabled = false, id = 8 }
+Frosted-Glass = { theme = "Frosted-Glass", enabled = false, id = 9 }
+Gruvbox-Retro = { theme = "Gruvbox-Retro", enabled = false, id = 10 }

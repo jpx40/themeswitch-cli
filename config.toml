@@ -1,8 +1,15 @@
 
-[applications_theme]
+[enabled]
 kitty = true
 waybar = true
 rofi = true
 wallpaper = true
 neovim = false
 code = true
+
+
+[theme.neovim]
+path = "~/.local/share/hyrdots/neovim/theme"
+file_ext = "lua"
+use_file = true
+enabled = true
