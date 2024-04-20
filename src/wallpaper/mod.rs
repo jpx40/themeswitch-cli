@@ -8,35 +8,42 @@ use std::process::Command;
 use std::{fs::File, path, sync::Mutex};
 
 lazy_static! {
-    static ref ACTIVE_WALLPAPER: Mutex<Wallpaper> = Mutex::new(Wallpaper::new(
+    pub static ref ACTIVE_WALLPAPER: Mutex<Wallpaper> = Mutex::new(Wallpaper::new(
         "default.png".to_string(),
         "~/.wallpaper/default.png".to_string()
     ));
 }
 lazy_static! {
-    static ref ACTIVE_GROUP: Mutex<Group> = Mutex::new(Group::new("default_group".to_string(),));
+    pub static ref ACTIVE_GROUP: Mutex<Group> =
+        Mutex::new(Group::new("default_group".to_string(),));
 }
 lazy_static! {
-    static ref ACTIVE_WALLPAPER_LIST: Mutex<WallpaperList> = Mutex::new(WallpaperList::new());
+    pub static ref ACTIVE_WALLPAPER_LIST: Mutex<WallpaperList> = Mutex::new(WallpaperList::new());
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WallpaperList {
-    list: Vec<Group>,
+    imports: Option<Vec<Imports>>,
+    pub list: Vec<Group>,
 }
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Imports {}
 impl WallpaperList {
-    fn new() -> WallpaperList {
-        WallpaperList { list: Vec::new() }
+    pub fn new() -> WallpaperList {
+        WallpaperList {
+            list: Vec::new(),
+            imports: None,
+        }
     }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Group {
-    name: String,
-    list: Vec<Wallpaper>,
+    pub name: String,
+    pub list: Vec<Wallpaper>,
 }
 impl Group {
-    fn new(name: String) -> Group {
+    pub fn new(name: String) -> Group {
         Group {
             name,
             list: Vec::new(),
