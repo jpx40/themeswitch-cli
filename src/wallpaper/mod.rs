@@ -2,6 +2,7 @@ use camino::Utf8Path;
 use core::str;
 use execute::Execute;
 use lazy_static::{lazy_static, LazyStatic};
+use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::process::Command;
 use std::{fs::File, path, sync::Mutex};
@@ -19,7 +20,7 @@ lazy_static! {
     static ref ACTIVE_WALLPAPER_LIST: Mutex<WallpaperList> = Mutex::new(WallpaperList::new());
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WallpaperList {
     list: Vec<Group>,
 }
@@ -28,7 +29,8 @@ impl WallpaperList {
         WallpaperList { list: Vec::new() }
     }
 }
-#[derive(Debug, Clone)]
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Group {
     name: String,
     list: Vec<Wallpaper>,
@@ -42,13 +44,13 @@ impl Group {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Wallpaper {
     pub name: String,
     pub path: String,
     pub config: Option<WallpaperConfig>,
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WallpaperConfig {}
 
 impl Wallpaper {
@@ -60,12 +62,38 @@ impl Wallpaper {
         }
     }
     pub fn set_wallpaper(&self) -> Result<(), String> {
-        println!("{}", self.path);
-        let path = Utf8Path::new(&self.path)
-            .canonicalize_utf8()
-            .unwrap_or_else(|err| {
-                panic!("{}", err.to_string());
-            });
+        let mut path: String = String::new();
+        if self.path.contains('~') {
+            path = match dirs::home_dir() {
+                Some(p) => {
+                    let path = self.path.clone().replace("~", "");
+                    p.canonicalize()
+                        .unwrap_or_else(|err| panic!("{}", err.to_string()))
+                        .to_string_lossy()
+                        .to_string()
+                        + &path
+                }
+                None => return Err("Failed to read file".to_string()),
+            };
+        } else {
+            path = match dirs::config_dir() {
+                Some(p) => {
+                    p.canonicalize()
+                        .unwrap_or_else(|err| panic!("{}", err.to_string()))
+                        .to_string_lossy()
+                        .to_string()
+                        + "/swww/"
+                        + &self.path
+                }
+                None => return Err("Failed to read file".to_string()),
+            };
+        }
+        println!("{}", path);
+        // let path = Utf8Path::new(&path)
+        //     .canonicalize_utf8()
+        //     .unwrap_or_else(|err| {
+        //         panic!("{}", err.to_string());
+        //     });
 
         if !Path::new(&path).exists() && !Path::new(&path).is_file() {
             return Err("File not found".to_string());
@@ -75,7 +103,7 @@ impl Wallpaper {
         if let Ok(mut value) = ACTIVE_WALLPAPER.lock() {
             *value = self.clone()
         }
-        println!("{}", path);
+
         match &self.config {
             Some(c) => sh.arg("img").arg(&path),
             None => sh.arg("img").arg(&path),

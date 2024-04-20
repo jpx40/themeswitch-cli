@@ -6,19 +6,27 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = "1.0.82"
 camino = { version = "1.1.6", features = ["serde"] }
 clap = { version = "4.5.3", features = ["derive", "cargo"] }
 config = "0.14.0"
+dirs = "5.0.1"
 execute = "0.2.13"
 fs_extra = "1.3.0"
 home = "0.5.9"
 itertools = "0.12.1"
 lazy_static = "1.4.0"
+logo = "1.1.1"
 minijinja = "1.0.16"
+nom = "7.1.3"
 notify = "6.1.1"
 once_cell = "1.19.0"
+pest = "2.7.9"
 regex = "1.10.4"
+ron = "0.8.1"
 scopeguard = "1.2.0"
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = "1.0.114"
+tailcall = "1.0.1"
+thiserror = "1.0.59"
 toml = "0.8.12"
