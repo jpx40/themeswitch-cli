@@ -221,6 +221,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "79296716171880943b8470b5f8d03aa55eb2e645a4874bdbb28adb49162e012c"
 
 [[package]]
+name = "bumpalo-herd"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c51ab7ee02d3459317cc16fec045966c9120733a10229541acaf3cc81b137c95"
+dependencies = [
+ "bumpalo",
+]
+
+[[package]]
 name = "byteorder"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1900,6 +1909,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f92a496fb766b417c996b9c5e57daf2f7ad3b0bebe1ccfca4856390e3d3bb67"
 dependencies = [
  "autocfg",
+ "serde",
 ]
 
 [[package]]
@@ -1992,6 +2002,7 @@ dependencies = [
  "anyhow",
  "async-recursion",
  "bumpalo",
+ "bumpalo-herd",
  "camino",
  "chrono",
  "chrono-tz",
@@ -2026,6 +2037,7 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
+ "slab",
  "smallvec",
  "tailcall",
  "thiserror",
@@ -2033,6 +2045,7 @@ dependencies = [
  "tokio",
  "toml",
  "try_match",
+ "typed-arena",
  "ureq",
  "warp",
  "which",
@@ -2263,6 +2276,12 @@ dependencies = [
  "url",
  "utf-8",
 ]
+
+[[package]]
+name = "typed-arena"
+version = "2.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6af6ae20167a9ece4bcb41af5b80f8a1f1df981f6391189ce00fd257af04126a"
 
 [[package]]
 name = "typenum"
