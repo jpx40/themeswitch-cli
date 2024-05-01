@@ -1,6 +1,7 @@
 use serde::Deserialize;
 mod cli;
 mod conf;
+mod parser;
 mod template;
 mod theme;
 mod util;
