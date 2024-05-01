@@ -1,0 +1,63 @@
+alpha = { 'a'..'z' | 'A'..'Z' }
+digit = { '0'..'9' }
+
+ident      =  { (alpha | digit)+ }
+num        = @{ int ~ ("." ~ ASCII_DIGIT*)? ~ (^"e" ~ int)? }
+int        =  { ("+" | "-")? ~ ASCII_DIGIT+ }
+WHITESPACE = _{ " " | "\t" }
+
+exec = { string }
+
+name = { char+ }
+value = { char* }
+
+var = {string}
+
+char = { ASCII_ALPHANUMERIC | "." | "_" | "/" }
+
+
+env = {string}
+integer = @{ "_"? ~ ASCII_DIGIT+ }
+
+decimal = @{ "_"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT* }
+
+ident = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+
+string = @{ "'" ~ ("''" | (!"'" ~ ANY))* ~ "'" }
+
+operation = _{ add | subtract | multiply | divide | power }
+add       =  { "+" }
+subtract  =  { "-" }
+multiply  =  { "*" }
+divide    =  { "/" }
+power     =  { "^" }
+
+object = {
+    "{" ~ "}"
+  | "{" ~ pair ~ ("," ~ pair)* ~ "}"
+}
+pair   = { string ~ ":" ~ value }
+
+array = {
+    "[" ~ "]"
+  | "[" ~ value ~ ("," ~ value)* ~ "]"
+}
+
+
+COMMENT = _{ "#" ~ (!"\n" ~ ANY)* }
+
+
+file = {
+    SOI ~
+    ((section | property)? ~ NEWLINE)* ~
+    EOI
+}
+
+
+
+file = {
+    SOI ~
+    ((section | property)? ~ NEWLINE)* ~
+    EOI
+}
+
