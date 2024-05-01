@@ -48,6 +48,7 @@ thiserror = "1.0.59"
 time = "0.3.36"
 tokio = { version = "1.37.0", features = ["full"] }
 toml = "0.8.12"
+try_match = "0.4.1"
 ureq = { version = "2.9.7", features = [
   "json",
   "http-crate",
