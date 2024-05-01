@@ -1,7 +1,7 @@
 alpha = { 'a'..'z' | 'A'..'Z' }
 digit = { '0'..'9' }
 
-ident      =  { (alpha | digit)+ }
+//ident      =  { (alpha | digit)+ }
 num        = @{ int ~ ("." ~ ASCII_DIGIT*)? ~ (^"e" ~ int)? }
 int        =  { ("+" | "-")? ~ ASCII_DIGIT+ }
 WHITESPACE = _{ " " | "\t" }
@@ -46,13 +46,8 @@ array = {
 
 COMMENT = _{ "#" ~ (!"\n" ~ ANY)* }
 
-
-file = {
-    SOI ~
-    ((section | property)? ~ NEWLINE)* ~
-    EOI
-}
-
+section = { "[" ~ name ~ "]" }
+property = { name ~ "=" ~ value }
 
 
 file = {
@@ -60,4 +55,6 @@ file = {
     ((section | property)? ~ NEWLINE)* ~
     EOI
 }
+
+
 
