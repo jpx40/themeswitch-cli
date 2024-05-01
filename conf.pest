@@ -6,12 +6,11 @@ num        = @{ int ~ ("." ~ ASCII_DIGIT*)? ~ (^"e" ~ int)? }
 int        =  { ("+" | "-")? ~ ASCII_DIGIT+ }
 WHITESPACE = _{ " " | "\t" }
 
-exec = { string }
 
-name = { char+ }
-value = { char* }
+val = { "\"" ~  char+ ~ "\"" }
+value = {( "\"" ~  char* ~ "\"") }
 
-var = {string}
+var = { string}
 
 char = { ASCII_ALPHANUMERIC | "." | "_" | "/" }
 
@@ -46,9 +45,24 @@ array = {
 
 COMMENT = _{ "#" ~ (!"\n" ~ ANY)* }
 
-section = { "[" ~ name ~ "]" }
-property = { name ~ "=" ~ value }
+section = { "[" ~ val ~ "]" }
+property = { val ~ "=" ~ value }
 
+name = {"name" ~ "=" ~ val}
+
+params = {"params" ~ (NEWLINE)* ~ ("{" ~ NEWLINE*  ~ ( path | object  ) ~  NEWLINE* ~ "}"  ~  NEWLINE*)}
+
+path  ={"path" ~ "=" ~ val }
+
+
+cmd = {("cmd" ~ "=" ~ val) }
+
+script = { "script" ~ "{" ~ (NEWLINE)* ~  params* ~ NEWLINE* ~ (cmd | path)+ ~ NEWLINE* ~ params* ~ (NEWLINE)* ~"}"  }
+exec = {"exec" ~ "{"  ~ (NEWLINE)* ~  params* ~ NEWLINE* ~ (cmd | path)+ ~ NEWLINE* ~ params* ~ (NEWLINE)* ~"}"  }
+template = {"template" ~ "{"  ~ (NEWLINE)* ~  params? ~ NEWLINE* ~ (cmd | path) ~ NEWLINE* ~ params? ~ (NEWLINE)* ~"}"  }
+block = {script ~ NEWLINE* | exec ~ NEWLINE* | template ~ NEWLINE* | color ~ NEWLINE*}
+color = {"color" ~ "{" ~ (NEWLINE)* ~ object ~ (NEWLINE)* ~  "}"  }
+profile = {"{" ~ (NEWLINE)* ~ (name) ~ NEWLINE* ~ (block)+ ~ (NEWLINE)* ~ "}"    }
 
 file = {
     SOI ~
