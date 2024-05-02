@@ -1,7 +1,7 @@
 WHITESPACE = _{ " " | "\t" }
 
-val   = { "\"" ~ char+ ~ "\"" }
-value = { ("\"" ~ char* ~ "\"") }
+val   = @{ "\"" ~ char+ ~ "\"" }
+value =  { ("\"" ~ char* ~ "\"") }
 
 char = { ASCII_ALPHANUMERIC | "." | "_" | "/" }
 
@@ -20,13 +20,13 @@ array = {
 
 COMMENT = _{ "#" ~ (!"\n" ~ ANY)* }
 
-name = { "name" ~ "=" ~ val }
+name = { "name" ~ "=" ~ string }
 
 params = { "param" ~ (NEWLINE)* ~ ("{" ~ NEWLINE* ~ (path | object) ~ NEWLINE* ~ "}" ~ NEWLINE*) }
 
-path = { "path" ~ "=" ~ val }
+path = { "path" ~ "=" ~ string }
 
-cmd = { ("cmd" ~ "=" ~ val) }
+cmd = { ("cmd" ~ "=" ~ string) }
 
 args      = { "arg" ~ "=" ~ array }
 import    = { "import" ~ "=" ~ char+ }
@@ -38,7 +38,7 @@ template  = { "template" ~ "{" ~ (NEWLINE)* ~ (path ~ (NEWLINE)* | params ~ (NEW
 color     = { "color" ~ "{" ~ (NEWLINE)* ~ object ~ (NEWLINE)* ~ "}" }
 profile   = { "profile" ~ "{" ~ (NEWLINE)* ~ (name) ~ NEWLINE* ~ (script ~ NEWLINE* | wallpaper ~ (NEWLINE)* | exec ~ NEWLINE* | template ~ NEWLINE* | color ~ NEWLINE* | variable ~ NEWLINE*)+ ~ (NEWLINE)* ~ "}" }
 
-variable = { ("\"$" ~ "=" ~ val) }
+variable = { ("\"$" ~ "=" ~ string) }
 
 file = {
     SOI ~ (NEWLINE)+ ~ (import ~ NEWLINE* | variable ~ NEWLINE* | profile ~ NEWLINE*)* ~ (NEWLINE)* ~ EOI

@@ -9,9 +9,6 @@ enum CONFValue {
     Object(Vec<(&'a str, CONFValue<'a>)>),
     Array(Vec<CONFValue<'a>>),
     Char(&'a str),
-    // could be an miskake
-    //
-    //this too
     Path(CONFValue<'a>),
     Wallpaper(CONFValue<'a>),
     Color(CONFValue<'a>),
