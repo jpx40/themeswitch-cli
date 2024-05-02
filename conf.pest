@@ -1,21 +1,19 @@
 alpha = { 'a'..'z' | 'A'..'Z' }
 digit = { '0'..'9' }
 
-//ident      =  { (alpha | digit)+ }
+// ident      =  { (alpha | digit)+ }
 num        = @{ int ~ ("." ~ ASCII_DIGIT*)? ~ (^"e" ~ int)? }
 int        =  { ("+" | "-")? ~ ASCII_DIGIT+ }
 WHITESPACE = _{ " " | "\t" }
 
+val   = { "\"" ~ char+ ~ "\"" }
+value = { ("\"" ~ char* ~ "\"") }
 
-val = { "\"" ~  char+ ~ "\"" }
-value = {( "\"" ~  char* ~ "\"") }
-
-var = { string}
+var = { string }
 
 char = { ASCII_ALPHANUMERIC | "." | "_" | "/" }
 
-
-env = {string}
+env     =  { string }
 integer = @{ "_"? ~ ASCII_DIGIT+ }
 
 decimal = @{ "_"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT* }
@@ -42,33 +40,28 @@ array = {
   | "[" ~ value ~ ("," ~ value)* ~ "]"
 }
 
-
 COMMENT = _{ "#" ~ (!"\n" ~ ANY)* }
 
-section = { "[" ~ val ~ "]" }
+section  = { "[" ~ val ~ "]" }
 property = { val ~ "=" ~ value }
 
-name = {"name" ~ "=" ~ val}
+name = { "name" ~ "=" ~ val }
 
-params = {"params" ~ (NEWLINE)* ~ ("{" ~ NEWLINE*  ~ ( path | object  ) ~  NEWLINE* ~ "}"  ~  NEWLINE*)}
+params = { "params" ~ (NEWLINE)* ~ ("{" ~ NEWLINE* ~ (path | object) ~ NEWLINE* ~ "}" ~ NEWLINE*) }
 
-path  ={"path" ~ "=" ~ val }
+path = { "path" ~ "=" ~ val }
 
+cmd = { ("cmd" ~ "=" ~ val) }
 
-cmd = {("cmd" ~ "=" ~ val) }
+args = { "args" ~ "=" ~ array }
 
-script = { "script" ~ "{" ~ (NEWLINE)* ~  params* ~ NEWLINE* ~ (cmd | path)+ ~ NEWLINE* ~ params* ~ (NEWLINE)* ~"}"  }
-exec = {"exec" ~ "{"  ~ (NEWLINE)* ~  params* ~ NEWLINE* ~ (cmd | path)+ ~ NEWLINE* ~ params* ~ (NEWLINE)* ~"}"  }
-template = {"template" ~ "{"  ~ (NEWLINE)* ~  params? ~ NEWLINE* ~ (cmd | path) ~ NEWLINE* ~ params? ~ (NEWLINE)* ~"}"  }
-block = {script ~ NEWLINE* | exec ~ NEWLINE* | template ~ NEWLINE* | color ~ NEWLINE*}
-color = {"color" ~ "{" ~ (NEWLINE)* ~ object ~ (NEWLINE)* ~  "}"  }
-profile = {"{" ~ (NEWLINE)* ~ (name) ~ NEWLINE* ~ (block)+ ~ (NEWLINE)* ~ "}"    }
+script   = { "script" ~ "{" ~ (NEWLINE)* ~ (args | params)* ~ NEWLINE* ~ (path)+ ~ NEWLINE* ~ (args | params)* ~ (NEWLINE)* ~ "}" }
+exec     = { "exec" ~ "{" ~ (NEWLINE)* ~ (params | args)* ~ NEWLINE* ~ (cmd | path)+ ~ NEWLINE* ~ (params | args)* ~ (NEWLINE)* ~ "}" }
+template = { "template" ~ "{" ~ (NEWLINE)* ~ params? ~ NEWLINE* ~ (cmd | path) ~ NEWLINE* ~ params? ~ (NEWLINE)* ~ "}" }
+block    = { script ~ NEWLINE* | exec ~ NEWLINE* | template ~ NEWLINE* | color ~ NEWLINE* }
+color    = { "color" ~ "{" ~ (NEWLINE)* ~ object ~ (NEWLINE)* ~ "}" }
+profile  = { "{" ~ (NEWLINE)* ~ (name) ~ NEWLINE* ~ (block)+ ~ (NEWLINE)* ~ "}" }
 
 file = {
-    SOI ~
-    ((section | property)? ~ NEWLINE)* ~
-    EOI
+    SOI ~ ((section | property)? ~ NEWLINE)* ~ EOI
 }
-
-
-

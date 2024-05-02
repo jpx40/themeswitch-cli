@@ -55,6 +55,7 @@ tokio = { version = "1.37.0", features = ["full"] }
 toml = "0.8.12"
 try_match = "0.4.1"
 typed-arena = "2.0.2"
+typenum = "1.17.0"
 ureq = { version = "2.9.7", features = [
   "json",
   "http-crate",
