@@ -3,43 +3,51 @@ WHITESPACE = _{ " " | "\t" }
 val   = @{ "\"" ~ char+ ~ "\"" }
 value =  { ("\"" ~ char* ~ "\"") }
 
-char = { ASCII_ALPHANUMERIC | "." | "_" | "/" }
+// char = { ASCII_ALPHANUMERIC | "." | "_" | "/" }
 
-string = @{ "'" ~ ("''" | (!"'" ~ ANY))* ~ "'" }
+// string = @{ "'" ~ ("''" | (!"'" ~ ANY))* ~ "'" }
+// string = @{ ("'" ~ ("''" | (!"'" ~ ANY))* ~ "'") | ("\"" ~ ("\"\"" | (!"\"" ~ ANY))* ~ "\"") }
 
-object = {
+string = ${ "\"" ~ inner ~ "\"" }
+inner  = @{ char* }
+char   =  {
+    !("\"" | "\\") ~ ANY
+  | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+  | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
+object =  {
     "{" ~ "}"
   | "{" ~ pair ~ ("," ~ pair)* ~ "}"
 }
-pair   = { string ~ ":" ~ value }
+pair   =  { string ~ ":" ~ value }
 
 array = {
     "[" ~ "]"
-  | "[" ~ value ~ ("," ~ value)* ~ "]"
+  | "[" ~ string ~ ("," ~ string)* ~ "]"
 }
 
 COMMENT = _{ "#" ~ (!"\n" ~ ANY)* }
 
 name = { "name" ~ "=" ~ string }
 
-params = { "param" ~ (NEWLINE)* ~ ("{" ~ NEWLINE* ~ (path | object) ~ NEWLINE* ~ "}" ~ NEWLINE*) }
+param = { "param" ~ (NEWLINE)* ~ ("{" ~ NEWLINE* ~ (path | object) ~ NEWLINE* ~ "}" ~ NEWLINE*) }
 
 path = { "path" ~ "=" ~ string }
 
 cmd = { ("cmd" ~ "=" ~ string) }
 
-args      = { "arg" ~ "=" ~ array }
+arg       = { "arg" ~ "=" ~ array }
 import    = { "import" ~ "=" ~ char+ }
 wallpaper = { ("wallpaper" ~ "{" ~ (path | array) ~ "}") }
 out       = { "output" ~ "=" ~ val }
-script    = { "script" ~ "{" ~ (NEWLINE)* ~ (path ~ (NEWLINE)* | params ~ (NEWLINE)* | args ~ (NEWLINE)*)+ ~ (NEWLINE)* ~ "}" }
-exec      = { "exec" ~ "{" ~ (NEWLINE)* ~ (path ~ (NEWLINE)* | cmd ~ (NEWLINE)* | params ~ (NEWLINE)* | args ~ (NEWLINE)*)+ ~ (NEWLINE)* ~ "}" }
-template  = { "template" ~ "{" ~ (NEWLINE)* ~ (path ~ (NEWLINE)* | params ~ (NEWLINE)* | out ~ (NEWLINE)* | args ~ (NEWLINE)* | color ~ NEWLINE*)+ ~ (NEWLINE)* ~ "}" }
+script    = { "script" ~ "{" ~ (NEWLINE)* ~ (path ~ (NEWLINE)* | param ~ (NEWLINE)* | arg ~ (NEWLINE)*)+ ~ (NEWLINE)* ~ "}" }
+exec      = { "exec" ~ "{" ~ (NEWLINE)* ~ (path ~ (NEWLINE)* | cmd ~ (NEWLINE)* | param ~ (NEWLINE)* | arg ~ (NEWLINE)*)+ ~ (NEWLINE)* ~ "}" }
+template  = { "template" ~ "{" ~ (NEWLINE)* ~ (path ~ (NEWLINE)* | param ~ (NEWLINE)* | out ~ (NEWLINE)* | arg ~ (NEWLINE)* | color ~ NEWLINE*)+ ~ (NEWLINE)* ~ "}" }
 color     = { "color" ~ "{" ~ (NEWLINE)* ~ object ~ (NEWLINE)* ~ "}" }
 profile   = { "profile" ~ "{" ~ (NEWLINE)* ~ (name) ~ NEWLINE* ~ (script ~ NEWLINE* | wallpaper ~ (NEWLINE)* | exec ~ NEWLINE* | template ~ NEWLINE* | color ~ NEWLINE* | variable ~ NEWLINE*)+ ~ (NEWLINE)* ~ "}" }
 
 variable = { ("\"$" ~ "=" ~ string) }
 
 file = {
-    SOI ~ (NEWLINE)+ ~ (import ~ NEWLINE* | variable ~ NEWLINE* | profile ~ NEWLINE*)* ~ (NEWLINE)* ~ EOI
+    SOI ~ (NEWLINE)* ~ (import ~ NEWLINE* | variable ~ NEWLINE* | profile ~ NEWLINE*)* ~ (NEWLINE)* ~ EOI
 }

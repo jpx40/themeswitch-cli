@@ -6,6 +6,10 @@ mod template;
 mod theme;
 mod util;
 mod wallpaper;
+use crate::parser::*;
+use pest::Parser;
+use pest_derive::Parser;
+
 fn main() {
     //     let w = wallpaper::Wallpaper {
     //         name: "cat_lofi_cafe".to_string(),
@@ -17,6 +21,7 @@ fn main() {
     //         Ok(_) => println!("test_set_wallpaper was successfull"),
     //         Err(e) => eprintln!("{e}"),
     //     }
+    parser::parse_conf("test.conf");
 }
 
 const _CHECK_OS: () = if cfg!(all(
