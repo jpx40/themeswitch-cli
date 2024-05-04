@@ -1,15 +1,17 @@
 use serde::Deserialize;
+mod api;
 mod cli;
 mod conf;
 mod parser;
+mod store;
 mod template;
 mod theme;
 mod util;
 mod wallpaper;
 use crate::parser::*;
+use crate::store::PROFILE;
 use pest::Parser;
 use pest_derive::Parser;
-
 fn main() {
     //     let w = wallpaper::Wallpaper {
     //         name: "cat_lofi_cafe".to_string(),
@@ -22,11 +24,7 @@ fn main() {
     //         Err(e) => eprintln!("{e}"),
     //     }
     parser::parse_conf("test.conf");
-    //
-    //
-    let path = "~/Application1/";
-
-    // println!("{}", util::path::expand_path(path).unwrap());
+    //let mut p = PROFILE.lock().unwrap().clone();
 }
 
 const _CHECK_OS: () = if cfg!(all(

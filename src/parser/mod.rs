@@ -1,5 +1,7 @@
-use crate::util;
+use crate::store::PROFILE;
 use crate::util::path::expand_path;
+
+use crate::{parser, template, util};
 use camino::Utf8Path;
 use itertools::cloned;
 use pest::iterators::{Pair, Pairs};
@@ -11,7 +13,9 @@ use serde_json::value;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::collections::VecDeque;
+use std::hash::Hash;
 use std::path::Path;
+use std::process::Command;
 use std::string::String;
 use std::sync::{Arc, Mutex};
 use std::vec::Vec;
@@ -65,7 +69,7 @@ pub struct Variable {
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Imports {
-    import: Vec<Import>,
+    pub import: Vec<Import>,
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Import {
@@ -81,9 +85,9 @@ pub struct Script {
 pub struct Param {}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Command {}
+pub struct Cmd {}
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Color(String);
+pub struct Color(HashMap<String, String>);
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Arg {}
 
@@ -183,6 +187,7 @@ pub fn parse_conf(path: &str) {
                 _ => {}
             }
         }
+
         if let Some(path) = path {
             Ok(ParamsResult::Path(path))
         } else if let Some(map) = map {
@@ -193,13 +198,44 @@ pub fn parse_conf(path: &str) {
     }
     //
     let mut imports: Mutex<Vec<Import>> = Mutex::new(Vec::new());
-    let mut profiles: Mutex<Vec<Profile>> = Mutex::new(Vec::new());
+    let mut profiles: Vec<Profile> = Vec::new();
     let mut global_variables: Vec<Variable> = Vec::new();
+    fn get_color(color: Pairs<Rule>) -> Result<HashMap<String, String>, String> {
+        let mut map: HashMap<String, String> = HashMap::new();
+        for line in color {
+            for line in line.into_inner() {
+                if line.as_rule() == Rule::pair {
+                    let mut key = String::new();
+                    let mut value = String::new();
+                    for line in line.into_inner() {
+                        match line.as_rule() {
+                            Rule::key => {
+                                key = line.into_inner().as_str().to_string();
+                            }
+                            Rule::string => {
+                                value = line.into_inner().as_str().to_string();
+                            }
+                            _ => {}
+                        }
+                    }
+                    {
+                        if !key.is_empty() && !value.is_empty() {
+                            map.insert(key, value);
+                        } else if key.is_empty() {
+                            return Err("Empty key in HashMap".to_string());
+                        } else if value.is_empty() {
+                            return Err("Empty value in HashMap".to_string());
+                        }
+                    }
+                }
+            }
+        }
+        Ok(map)
+    }
 
     fn get_cmd(cmd: &str) -> &str {
         cmd.split('=').collect::<Vec<&str>>()[1]
     }
-
     file.into_inner().for_each(|line| match line.as_rule() {
         Rule::profile => {
             let mut profile = Profile::new();
@@ -227,7 +263,10 @@ pub fn parse_conf(path: &str) {
                                         .unwrap_or_else(|err| panic!("{err}"))
                                     {
                                         ParamsResult::Path(path) => {
-                                            script.add_param(util::json_to_hashmap(&path));
+                                            script.add_param(
+                                                util::file_to_hashmap(&path)
+                                                    .unwrap_or_else(|err| panic!("{err}")),
+                                            );
                                         }
 
                                         ParamsResult::Params(map) => script.add_param(map),
@@ -267,14 +306,42 @@ pub fn parse_conf(path: &str) {
                         profile.add_exec(exec);
                     }
 
-                    Rule::template => {}
+                    Rule::template => {
+                        let mut template = Template::new();
+                        for line in line.into_inner() {
+                            match line.as_rule() {
+                                Rule::arg => {
+                                    template.add_args(get_args(line.into_inner()));
+                                }
+                                Rule::path => {
+                                    let path = get_path(line.as_str());
+                                    template.set_path(path.to_string());
+                                }
+                                Rule::param => {
+                                    match get_params(line.into_inner())
+                                        .unwrap_or_else(|err| panic!("{err}"))
+                                    {
+                                        ParamsResult::Path(path) => {
+                                            template.add_param(util::json_to_hashmap(&path));
+                                        }
+
+                                        ParamsResult::Params(map) => template.add_param(map),
+                                    }
+                                }
+                                // Rule::color => {
+                                //     println!("{}", line.as_str())
+                                // }
+                                _ => (),
+                            }
+                        }
+                        profile.add_template(template)
+                    }
 
                     _ => {}
                 }
             }
-            if let Ok(mut profiles) = profiles.lock() {
-                profiles.push(profile);
-            }
+
+            profiles.push(profile);
         }
         Rule::import => {}
         Rule::variable => {
@@ -284,12 +351,36 @@ pub fn parse_conf(path: &str) {
         }
         Rule::EOI => (),
         _ => unreachable!(),
-    })
+    });
+
+    let profiles_map: HashMap<String, Profile> =
+        HashMap::from_iter(profiles.into_iter().map(|p| (p.name.clone(), p)));
+
+    if let Ok(mut store) = PROFILE.lock() {
+        *store = profiles_map;
+    }
 }
 
 impl Color {
-    fn new(color: String) -> Self {
-        Color(color)
+    fn new() -> Self {
+        Color(HashMap::new())
+    }
+    fn make_new(key: String, value: String) -> Color {
+        Color(HashMap::from([(key, value)]))
+    }
+    fn add(&mut self, name: String, value: String) {
+        self.0.insert(name, value);
+    }
+    fn get(&self, name: &str) -> Option<&str> {
+        self.0.get(name).map(|s| s.as_str())
+    }
+    fn get_all(&self) -> HashMap<String, String> {
+        self.0.clone()
+    }
+
+    fn merge(&mut self, map_ref: Color) {
+        self.0
+            .extend(map_ref.0.into_iter().map(|(k, v)| (k.clone(), v.clone())));
     }
 }
 impl Imports {
