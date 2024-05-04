@@ -3,7 +3,7 @@ use crate::util::path::expand_path;
 
 use crate::{parser, template, util};
 use camino::Utf8Path;
-use itertools::cloned;
+use itertools::{cloned, ProcessResults};
 use pest::iterators::{Pair, Pairs};
 use pest::Parser;
 use pest_derive::Parser;
@@ -19,6 +19,7 @@ use std::process::Command;
 use std::string::String;
 use std::sync::{Arc, Mutex};
 use std::vec::Vec;
+
 #[derive(Parser)]
 #[grammar = "conf.pest"]
 pub struct CONFParser;
@@ -60,7 +61,7 @@ pub struct Profile {
     pub exec: Option<Vec<Exec>>,
     pub script: Option<Vec<Script>>,
     pub template: Option<Vec<Template>>,
-    pub colors: Option<Vec<Color>>,
+    pub color: Option<Color>,
 }
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
 pub struct Variable {
@@ -196,45 +197,52 @@ pub fn parse_conf(path: &str) {
             Err("Failed to get params".to_string())
         }
     }
+    fn get_variable(rules: Pairs<Rule>) -> Variable {
+        let mut name = String::new();
+        let mut value = String::new();
+        for line in rules {
+            match line.as_rule() {
+                Rule::var => {
+                    name = line.as_str().to_string();
+                }
+                Rule::string => {}
+                _ => {}
+            };
+        }
+        Variable { name, value }
+    }
+
     //
-    let mut imports: Mutex<Vec<Import>> = Mutex::new(Vec::new());
+    let mut imports: Vec<Import> = Vec::new();
     let mut profiles: Vec<Profile> = Vec::new();
     let mut global_variables: Vec<Variable> = Vec::new();
     fn get_color(color: Pairs<Rule>) -> Result<HashMap<String, String>, String> {
         let mut map: HashMap<String, String> = HashMap::new();
-        for line in color {
-            for line in line.into_inner() {
-                if line.as_rule() == Rule::pair {
-                    let mut key = String::new();
-                    let mut value = String::new();
-                    for line in line.into_inner() {
-                        match line.as_rule() {
-                            Rule::key => {
-                                key = line.into_inner().as_str().to_string();
-                            }
-                            Rule::string => {
-                                value = line.into_inner().as_str().to_string();
-                            }
-                            _ => {}
-                        }
-                    }
-                    {
-                        if !key.is_empty() && !value.is_empty() {
-                            map.insert(key, value);
-                        } else if key.is_empty() {
-                            return Err("Empty key in HashMap".to_string());
-                        } else if value.is_empty() {
-                            return Err("Empty value in HashMap".to_string());
-                        }
-                    }
-                }
-            }
-        }
-        Ok(map)
-    }
+        match get_params(color) {
+            Ok(p) => match p {
+                ParamsResult::Params(p) => Ok(p),
 
+                ParamsResult::Path(p) => match util::file_to_hashmap(&p) {
+                    Ok(c) => Ok(c),
+                    Err(err) => Err(err),
+                },
+            },
+
+            Err(err) => Err(err),
+        }
+    }
     fn get_cmd(cmd: &str) -> &str {
         cmd.split('=').collect::<Vec<&str>>()[1]
+    }
+
+    fn get_imports(import: Pairs<Rule>) -> String {
+        let mut import_out = String::new();
+        for line in import {
+            if line.as_rule() == Rule::value {
+                import_out = line.as_str().to_string();
+            }
+        }
+        import_out
     }
     file.into_inner().for_each(|line| match line.as_rule() {
         Rule::profile => {
@@ -246,6 +254,8 @@ pub fn parse_conf(path: &str) {
                             line.as_str().split('=').collect::<Vec<&str>>()[1].to_string(),
                         );
                     }
+
+                    Rule::variable => profile.add_variable(get_variable(line.into_inner())),
 
                     Rule::script => {
                         let mut script = Script::new();
@@ -331,14 +341,18 @@ pub fn parse_conf(path: &str) {
                                         ParamsResult::Params(map) => template.add_param(map),
                                     }
                                 }
-                                // Rule::color => {
-                                //     println!("{}", line.as_str())
-                                // }
+                                Rule::color => template.add_color(
+                                    get_color(line.into_inner())
+                                        .unwrap_or_else(|err| panic!("{err}")),
+                                ),
                                 _ => (),
                             }
                         }
                         profile.add_template(template)
                     }
+                    Rule::color => profile.add_color(
+                        get_color(line.into_inner()).unwrap_or_else(|err| panic!("{err}")),
+                    ),
 
                     _ => {}
                 }
@@ -346,11 +360,12 @@ pub fn parse_conf(path: &str) {
 
             profiles.push(profile);
         }
-        Rule::import => {}
+        Rule::import => {
+            let import = Import::new(get_imports(line.into_inner()));
+            imports.push(import)
+        }
         Rule::variable => {
-            let mut inner_rules = line.into_inner();
-            let name = inner_rules.next().unwrap().as_str();
-            let value = inner_rules.next().unwrap().as_str();
+            global_variables.push(get_variable(line.into_inner()));
         }
         Rule::EOI => (),
         _ => unreachable!(),
@@ -410,15 +425,14 @@ impl Profile {
             exec: None,
             script: None,
             template: None,
-            colors: None,
+            color: None,
         }
     }
     pub fn set_name(&mut self, name: String) {
         self.name = name;
     }
 
-    pub fn add_variable(&mut self, name: String, value: String) {
-        let variable = Variable { name, value };
+    pub fn add_variable(&mut self, variable: Variable) {
         if self.variables.is_some() {
             self.variables.as_mut().unwrap().push(variable);
         } else if self.variables.is_none() {
@@ -441,7 +455,10 @@ impl Profile {
             self.script = Some(vec![script]);
         }
     }
-
+    fn add_color(&mut self, color: HashMap<String, String>) {
+        let color = Color(color);
+        self.color = Some(color);
+    }
     pub fn add_template(&mut self, template: Template) {
         if self.template.is_some() {
             self.template.as_mut().unwrap().push(template);
@@ -475,7 +492,8 @@ impl Template {
             self.params = Some(vec![param]);
         }
     }
-    fn add_color(&mut self, color: Color) {
+    fn add_color(&mut self, color: HashMap<String, String>) {
+        let color = Color(color);
         self.color = Some(color);
     }
     fn add_args(&mut self, args: Vec<String>) {

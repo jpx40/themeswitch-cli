@@ -1,7 +1,7 @@
 WHITESPACE = _{ " " | "\t" }
 
 val   = @{ "\"" ~ char+ ~ "\"" }
-value =  { ("\"" ~ char* ~ "\"") }
+value =  { (char+) }
 
 cha = { ASCII_ALPHANUMERIC | ANY | "." | "_" | "/" }
 
@@ -44,7 +44,7 @@ path = { "path" ~ "=" ~ string }
 cmd = { ("cmd" ~ "=" ~ string) }
 
 arg       = { "arg" ~ "=" ~ array }
-import    = { "import" ~ "=" ~ char+ }
+import    = { "import" ~ "=" ~ value }
 wallpaper = { ("wallpaper" ~ "{" ~ (NEWLINE)* ~ (path | array) ~ (NEWLINE)* ~ "}") }
 out       = { "output" ~ "=" ~ val }
 script    = { "script" ~ "{" ~ (NEWLINE)* ~ (path ~ (NEWLINE)* | param ~ (NEWLINE)* | arg ~ (NEWLINE)*)+ ~ (NEWLINE)* ~ "}" }
