@@ -322,7 +322,10 @@ pub fn parse_conf(path: &str) {
                                         .unwrap_or_else(|err| panic!("{err}"))
                                     {
                                         ParamsResult::Path(path) => {
-                                            template.add_param(util::json_to_hashmap(&path));
+                                            template.add_param(
+                                                util::file_to_hashmap(&path)
+                                                    .unwrap_or_else(|err| panic!("{err}")),
+                                            );
                                         }
 
                                         ParamsResult::Params(map) => template.add_param(map),
