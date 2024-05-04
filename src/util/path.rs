@@ -1,5 +1,6 @@
+use camino::Utf8Path;
+use compact_str::ToCompactString;
 pub use etcetera::home_dir;
-
 use std::{
     borrow::Cow,
     ffi::OsString,
@@ -26,6 +27,30 @@ where
     }
 
     path
+}
+
+pub fn expand_path(path: &str) -> Result<String, String> {
+    let mut os_path = Utf8Path::new(path);
+    let mut path_temp: String = String::new();
+    if os_path.as_str().contains('~') {
+        let home = home_dir().unwrap();
+        path_temp = path.replace('~', &home.to_string_lossy());
+
+        os_path = Utf8Path::new(&path_temp);
+    }
+    if os_path.exists() {
+        if !os_path.is_absolute() {
+            return Ok(os_path
+                .canonicalize()
+                .unwrap_or_else(|err| panic!("failed to canonicalize {path}: {}", err))
+                .to_string_lossy()
+                .to_string());
+        } else {
+            Ok(os_path.to_string())
+        }
+    } else {
+        Err(format!("Path {path} does not exist").to_string())
+    }
 }
 
 /// Expands tilde `~` into users home directory if available, otherwise returns the path

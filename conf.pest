@@ -3,10 +3,14 @@ WHITESPACE = _{ " " | "\t" }
 val   = @{ "\"" ~ char+ ~ "\"" }
 value =  { ("\"" ~ char* ~ "\"") }
 
-// char = { ASCII_ALPHANUMERIC | "." | "_" | "/" }
+cha = { ASCII_ALPHANUMERIC | ANY | "." | "_" | "/" }
 
 // string = @{ "'" ~ ("''" | (!"'" ~ ANY))* ~ "'" }
 // string = @{ ("'" ~ ("''" | (!"'" ~ ANY))* ~ "'") | ("\"" ~ ("\"\"" | (!"\"" ~ ANY))* ~ "\"") }
+// 
+// 
+
+var = { "$" ~ cha+ }
 
 string = ${ "\"" ~ inner ~ "\"" }
 inner  = @{ char* }
@@ -17,9 +21,12 @@ char   =  {
 }
 object =  {
     "{" ~ "}"
-  | "{" ~ pair ~ ("," ~ pair)* ~ "}"
+  | NEWLINE* ~ pair ~ NEWLINE* ~ ("," ~ NEWLINE* ~ pair ~ NEWLINE*)* ~ NEWLINE*
+  | NEWLINE* ~ "{" ~ NEWLINE* ~ pair ~ NEWLINE* ~ ("," ~ NEWLINE* ~ pair ~ NEWLINE*)* ~ NEWLINE* ~ "}"
 }
-pair   =  { string ~ ":" ~ value }
+
+key  = ${ "\"" ~ inner ~ "\"" }
+pair =  { key ~ ":" ~ string }
 
 array = {
     "[" ~ "]"
@@ -30,7 +37,7 @@ COMMENT = _{ "#" ~ (!"\n" ~ ANY)* }
 
 name = { "name" ~ "=" ~ string }
 
-param = { "param" ~ (NEWLINE)* ~ ("{" ~ NEWLINE* ~ (path | object) ~ NEWLINE* ~ "}" ~ NEWLINE*) }
+param = { "param" ~ "{" ~ (NEWLINE)* ~ (NEWLINE* ~ (path) ~ NEWLINE* | (NEWLINE* ~ object ~ NEWLINE*)) ~ "}" ~ NEWLINE* }
 
 path = { "path" ~ "=" ~ string }
 
@@ -38,7 +45,7 @@ cmd = { ("cmd" ~ "=" ~ string) }
 
 arg       = { "arg" ~ "=" ~ array }
 import    = { "import" ~ "=" ~ char+ }
-wallpaper = { ("wallpaper" ~ "{" ~ (path | array) ~ "}") }
+wallpaper = { ("wallpaper" ~ "{" ~ (NEWLINE)* ~ (path | array) ~ (NEWLINE)* ~ "}") }
 out       = { "output" ~ "=" ~ val }
 script    = { "script" ~ "{" ~ (NEWLINE)* ~ (path ~ (NEWLINE)* | param ~ (NEWLINE)* | arg ~ (NEWLINE)*)+ ~ (NEWLINE)* ~ "}" }
 exec      = { "exec" ~ "{" ~ (NEWLINE)* ~ (path ~ (NEWLINE)* | cmd ~ (NEWLINE)* | param ~ (NEWLINE)* | arg ~ (NEWLINE)*)+ ~ (NEWLINE)* ~ "}" }
@@ -46,7 +53,7 @@ template  = { "template" ~ "{" ~ (NEWLINE)* ~ (path ~ (NEWLINE)* | param ~ (NEWL
 color     = { "color" ~ "{" ~ (NEWLINE)* ~ object ~ (NEWLINE)* ~ "}" }
 profile   = { "profile" ~ "{" ~ (NEWLINE)* ~ (name) ~ NEWLINE* ~ (script ~ NEWLINE* | wallpaper ~ (NEWLINE)* | exec ~ NEWLINE* | template ~ NEWLINE* | color ~ NEWLINE* | variable ~ NEWLINE*)+ ~ (NEWLINE)* ~ "}" }
 
-variable = { ("\"$" ~ "=" ~ string) }
+variable = { (var ~ "=" ~ string) }
 
 file = {
     SOI ~ (NEWLINE)* ~ (import ~ NEWLINE* | variable ~ NEWLINE* | profile ~ NEWLINE*)* ~ (NEWLINE)* ~ EOI

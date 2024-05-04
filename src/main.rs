@@ -22,6 +22,11 @@ fn main() {
     //         Err(e) => eprintln!("{e}"),
     //     }
     parser::parse_conf("test.conf");
+    //
+    //
+    let path = "~/Application1/";
+
+    // println!("{}", util::path::expand_path(path).unwrap());
 }
 
 const _CHECK_OS: () = if cfg!(all(
