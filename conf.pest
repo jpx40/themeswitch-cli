@@ -1,3 +1,5 @@
+//https://github.com/pest-parser/pest/blob/master/grammars/src/grammars/toml.pest
+
 WHITESPACE = _{ " " | "\t" }
 
 val   = @{ "\"" ~ char+ ~ "\"" }
@@ -43,8 +45,27 @@ path = { "path" ~ "=" ~ string }
 
 cmd = { ("cmd" ~ "=" ~ string) }
 
+
+inline_table = { "{" ~ pair ~ ("," ~ pair)* ~ ","? ~ "}" | "{" ~ "}" }
+
+array = { "[" ~ value ~ ("," ~ value)* ~ ","? ~ "]" | "[" ~ "]" }
+
+identifier = { (ASCII_ALPHANUMERIC | "_" | "-")+ }
+
+multi_line_string  = @{ "\"\"\"" ~ inner ~ "\"\"\"" }
+string             = @{ "\"" ~ inner ~ "\"" }
+inner              = @{ (!("\"" | "\\" | "\u{0000}" | "\u{001F}") ~ ANY)* ~ (escape ~ inner)? }
+multi_line_literal = @{ "'''" ~ (!"'''" ~ ANY)* ~ "'''" }
+literal            = @{ "'" ~ (!"'" ~ ANY)* ~ "'" }
+
+escape  = @{ "\\" ~ ("b" | "t" | "n" | "f" | "r" | "\"" | "\\" | unicode | NEWLINE)? }
+unicode = @{ "u" ~ ASCII_HEX_DIGIT{4} | "U" ~ ASCII_HEX_DIGIT{8} }
+
+
+import_str = ${inner}
+
 arg       = { "arg" ~ "=" ~ array }
-import    = { "import" ~ "=" ~ value }
+import    = { "import "  ~ import_str ~ (NEWLINE)*}
 wallpaper = { ("wallpaper" ~ "{" ~ (NEWLINE)* ~ (path | array) ~ (NEWLINE)* ~ "}") }
 out       = { "output" ~ "=" ~ val }
 script    = { "script" ~ "{" ~ (NEWLINE)* ~ (path ~ (NEWLINE)* | param ~ (NEWLINE)* | arg ~ (NEWLINE)*)+ ~ (NEWLINE)* ~ "}" }

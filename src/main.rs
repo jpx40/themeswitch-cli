@@ -27,9 +27,9 @@ fn main() {
     //let mut p = PROFILE.lock().unwrap().clone();
 }
 
-const _CHECK_OS: () = if cfg!(all(
-    not(target_os = "linux"),
-    not(feature = "unsupported-os")
-)) {
-    panic!("Sorry, only Linux is currently supported.");
-};
+// const _CHECK_OS: () = if cfg!(all(
+//     not(target_os = "linux"),
+//     not(feature = "unsupported-os")
+// )) {
+//     panic!("Sorry, only Linux is currently supported.");
+//};
