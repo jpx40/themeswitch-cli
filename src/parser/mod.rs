@@ -385,7 +385,8 @@ pub fn parse_conf(path: &str) {
         store.extend(global_variables.clone());
     }
 
-    let mut file = File::new(path.to_string());
+    let mut file = File::new();
+    file.add_filename(path.to_string());
     file.add_profiles(profiles_map);
     file.add_imports(imports.clone());
     file.add_global_variables(global_variables);
@@ -410,9 +411,9 @@ pub struct File {
 }
 
 impl File {
-    fn new(path: String) -> Self {
+    fn new() -> Self {
         File {
-            path,
+            path: String::new(),
             import: vec![],
             profiles: HashMap::new(),
             global_variables: HashMap::new(),
