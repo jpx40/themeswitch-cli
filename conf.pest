@@ -1,7 +1,7 @@
 WHITESPACE = _{ " " | "\t" }
 
-val   = @{ "\"" ~ char+ ~ "\"" }
-value =  { (char+) }
+val = @{ "\"" ~ char+ ~ "\"" }
+// value =  { inner }
 
 cha = { ASCII_ALPHANUMERIC | ANY | "." | "_" | "/" }
 
@@ -25,17 +25,50 @@ object =  {
   | NEWLINE* ~ "{" ~ NEWLINE* ~ pair ~ NEWLINE* ~ ("," ~ NEWLINE* ~ pair ~ NEWLINE*)* ~ NEWLINE* ~ "}"
 }
 
-key  = ${ "\"" ~ inner ~ "\"" }
-pair =  { key ~ ":" ~ string }
+key = @{ identifier | string | literal }
+
+value = _{
+    inline_table
+  | array
+  | multi_line_string
+  | string
+  | multi_line_literal
+  | literal
+  | date_time
+  | local_date_time
+  | full_date
+  | partial_time
+  | float
+  | integer
+  | boolean
+}
+
+identifier = { (ASCII_ALPHANUMERIC | "_" | "-")+ }
+
+literal            = @{ "'" ~ (!"'" ~ ANY)* ~ "'" }
+multi_line_literal = @{ "'''" ~ (!"'''" ~ ANY)* ~ "'''" }
+
+inline_table = { "{" ~ pair ~ ("," ~ pair)* ~ ","? ~ "}" | "{" ~ "}" }
+
+multi_line_string = @{ "\"\"\"" ~ inner ~ "\"\"\"" }
+
+escape  = @{ "\\" ~ ("b" | "t" | "n" | "f" | "r" | "\"" | "\\" | unicode | NEWLINE)? }
+unicode = @{ "u" ~ ASCII_HEX_DIGIT{4} | "U" ~ ASCII_HEX_DIGIT{8} }
+
+pair = { key ~ "=" ~ string }
 
 array = {
     "[" ~ "]"
   | "[" ~ string ~ ("," ~ string)* ~ "]"
 }
 
-COMMENT = _{ "#" ~ (!"\n" ~ ANY)* }
+boolean = { "true" | "false" }
 
-name = { "name" ~ "=" ~ string }
+COMMENT = _{ "#" ~ (!NEWLINE ~ ANY)* }
+
+table       = { "[" ~ key ~ ("." ~ key)* ~ "]" ~ pair* }
+array_table = { "[[" ~ key ~ ("." ~ key)* ~ "]]" ~ pair* }
+name        = { "name" ~ "=" ~ string }
 
 param = { "param" ~ "{" ~ (NEWLINE)* ~ (NEWLINE* ~ (path) ~ NEWLINE* | (NEWLINE* ~ object ~ NEWLINE*)) ~ "}" ~ NEWLINE* }
 
@@ -44,7 +77,7 @@ path = { "path" ~ "=" ~ string }
 cmd = { ("cmd" ~ "=" ~ string) }
 
 arg       = { "arg" ~ "=" ~ array }
-import    = { "import" ~ "=" ~ value }
+import    = { (NEWLINE)* ~ "import " ~ value ~ (NEWLINE)* }
 wallpaper = { ("wallpaper" ~ "{" ~ (NEWLINE)* ~ (path | array) ~ (NEWLINE)* ~ "}") }
 out       = { "output" ~ "=" ~ val }
 script    = { "script" ~ "{" ~ (NEWLINE)* ~ (path ~ (NEWLINE)* | param ~ (NEWLINE)* | arg ~ (NEWLINE)*)+ ~ (NEWLINE)* ~ "}" }
@@ -52,6 +85,29 @@ exec      = { "exec" ~ "{" ~ (NEWLINE)* ~ (path ~ (NEWLINE)* | cmd ~ (NEWLINE)* 
 template  = { "template" ~ "{" ~ (NEWLINE)* ~ (path ~ (NEWLINE)* | param ~ (NEWLINE)* | out ~ (NEWLINE)* | arg ~ (NEWLINE)* | color ~ NEWLINE*)+ ~ (NEWLINE)* ~ "}" }
 color     = { "color" ~ "{" ~ (NEWLINE)* ~ (object | path) ~ (NEWLINE)* ~ "}" ~ (NEWLINE)* }
 profile   = { "profile" ~ "{" ~ (NEWLINE)* ~ (name) ~ NEWLINE* ~ (script ~ NEWLINE* | wallpaper ~ (NEWLINE)* | color ~ NEWLINE* | exec ~ NEWLINE* | template ~ NEWLINE* | variable ~ NEWLINE*)+ ~ (NEWLINE)* ~ "}" }
+
+date_time       = ${ full_date ~ "T" ~ full_time }
+local_date_time = ${ full_date ~ "T" ~ partial_time }
+
+partial_time = ${ time_hour ~ ":" ~ time_minute ~ ":" ~ time_second ~ time_secfrac? }
+full_date    = ${ date_fullyear ~ "-" ~ date_month ~ "-" ~ date_mday }
+full_time    = ${ partial_time ~ time_offset }
+
+date_fullyear = @{ ASCII_DIGIT{4} }
+date_month    = @{ ASCII_DIGIT{2} }
+date_mday     = @{ ASCII_DIGIT{2} }
+
+time_hour    = @{ ASCII_DIGIT{2} }
+time_minute  = @{ ASCII_DIGIT{2} }
+time_second  = @{ ASCII_DIGIT{2} }
+time_secfrac = @{ "." ~ ASCII_DIGIT+ }
+time_offset  = ${ "Z" | ("+" | "-") ~ time_hour ~ ":" ~ time_minute }
+
+integer = @{ ("+" | "-")? ~ int }
+float   = @{ ("+" | "-")? ~ int ~ ("." ~ digits ~ exp? | exp)? }
+int     = @{ "0" | (ASCII_NONZERO_DIGIT ~ digits?) }
+digits  = @{ (ASCII_DIGIT | ("_" ~ ASCII_DIGIT))+ }
+exp     = @{ ("E" | "e") ~ ("+" | "-")? ~ int }
 
 variable = { (var ~ "=" ~ string) }
 
