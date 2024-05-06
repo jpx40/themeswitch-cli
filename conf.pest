@@ -22,8 +22,8 @@ char   = {
 }
 object = {
     "{" ~ "}"
-  | NEWLINE* ~ pair ~ NEWLINE* ~ ("," ~ NEWLINE* ~ pair ~ NEWLINE*)* ~ NEWLINE*
-  | NEWLINE* ~ "{" ~ NEWLINE* ~ pair ~ NEWLINE* ~ ("," ~ NEWLINE* ~ pair ~ NEWLINE*)* ~ NEWLINE* ~ "}"
+  | NEWLINE* ~ o_pair ~ NEWLINE* ~ ("," ~ NEWLINE* ~ o_pair ~ NEWLINE*)* ~ NEWLINE*
+  | NEWLINE* ~ "{" ~ NEWLINE* ~ o_pair ~ NEWLINE* ~ ("," ~ NEWLINE* ~ o_pair ~ NEWLINE*)* ~ NEWLINE* ~ "}"
 }
 
 key = @{ identifier | string | literal }
@@ -57,6 +57,8 @@ escape  = @{ "\\" ~ ("b" | "t" | "n" | "f" | "r" | "\"" | "\\" | unicode | NEWLI
 unicode = @{ "u" ~ ASCII_HEX_DIGIT{4} | "U" ~ ASCII_HEX_DIGIT{8} }
 
 pair = { key ~ "=" ~ string }
+
+o_pair = { key ~ ":" ~ string }
 
 array = {
     "[" ~ "]"
