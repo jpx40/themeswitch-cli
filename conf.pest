@@ -13,13 +13,14 @@ cha = { ASCII_ALPHANUMERIC | ANY | "." | "_" | "/" }
 var = { "$" ~ cha+ }
 
 string = ${ "\"" ~ inner ~ "\"" }
-inner  = @{ char* }
-char   =  {
+inner  = @{ (!("\"" | "\\") ~ ANY)* ~ (escape ~ inner)? }
+// inner  = @{ (!("\"" | "\\" | "\u{0000}" | "\u{001F}") ~ ANY)* ~ (escape ~ inner)? }
+char   = {
     !("\"" | "\\") ~ ANY
   | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
   | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
 }
-object =  {
+object = {
     "{" ~ "}"
   | NEWLINE* ~ pair ~ NEWLINE* ~ ("," ~ NEWLINE* ~ pair ~ NEWLINE*)* ~ NEWLINE*
   | NEWLINE* ~ "{" ~ NEWLINE* ~ pair ~ NEWLINE* ~ ("," ~ NEWLINE* ~ pair ~ NEWLINE*)* ~ NEWLINE* ~ "}"
