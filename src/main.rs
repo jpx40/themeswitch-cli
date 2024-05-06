@@ -9,7 +9,7 @@ mod theme;
 mod util;
 mod wallpaper;
 use crate::parser::*;
-use crate::store::PROFILE;
+use crate::store::*;
 use pest::Parser;
 use pest_derive::Parser;
 fn main() {
@@ -24,7 +24,13 @@ fn main() {
     //         Err(e) => eprintln!("{e}"),
     //     }
     parser::parse_conf("test.conf");
-    //let mut p = PROFILE.lock().unwrap().clone();
+    let mut p = PROFILE.lock().unwrap().clone();
+    let mut i = IMPORT.lock().unwrap().clone();
+    for (k, v) in p.iter() {}
+
+    for i in i.iter() {
+        println!("{:?}", i)
+    }
 }
 
 const _CHECK_OS: () = if cfg!(all(

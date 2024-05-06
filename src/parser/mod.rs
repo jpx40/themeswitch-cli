@@ -1,6 +1,6 @@
 use crate::store::PROFILE;
+use crate::store::*;
 use crate::util::path::expand_path;
-
 use crate::{parser, template, util};
 use camino::Utf8Path;
 use itertools::{cloned, ProcessResults};
@@ -57,7 +57,7 @@ enum CONFValue<'a> {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Profile {
     pub name: String,
-    pub variables: Option<Vec<Variable>>,
+    pub variables: Option<HashMap<String, Variable>>,
     pub exec: Option<Vec<Exec>>,
     pub script: Option<Vec<Script>>,
     pub template: Option<Vec<Template>>,
@@ -70,6 +70,7 @@ pub struct Variable {
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Imports {
+    pub file: String,
     pub import: Vec<Import>,
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -159,7 +160,7 @@ pub fn parse_conf(path: &str) {
                 }
                 Rule::object => {
                     for line in line.into_inner() {
-                        if line.as_rule() == Rule::pair {
+                        if line.as_rule() == Rule::o_pair {
                             let mut key = String::new();
                             let mut value = String::new();
                             for line in line.into_inner() {
@@ -215,7 +216,7 @@ pub fn parse_conf(path: &str) {
     //
     let mut imports: Vec<Import> = Vec::new();
     let mut profiles: Vec<Profile> = Vec::new();
-    let mut global_variables: Vec<Variable> = Vec::new();
+    let mut global_variables: HashMap<String, Variable> = HashMap::new();
     fn get_color(color: Pairs<Rule>) -> Result<HashMap<String, String>, String> {
         let mut map: HashMap<String, String> = HashMap::new();
         match get_params(color) {
@@ -238,7 +239,7 @@ pub fn parse_conf(path: &str) {
     fn get_imports(import: Pairs<Rule>) -> String {
         let mut import_out = String::new();
         for line in import {
-            if line.as_rule() == Rule::value {
+            if line.as_rule() == Rule::key {
                 import_out = line.as_str().to_string();
             }
         }
@@ -365,7 +366,9 @@ pub fn parse_conf(path: &str) {
             imports.push(import)
         }
         Rule::variable => {
-            global_variables.push(get_variable(line.into_inner()));
+            let var = get_variable(line.into_inner());
+
+            global_variables.insert(var.name.clone(), var);
         }
         Rule::EOI => (),
         _ => unreachable!(),
@@ -375,7 +378,80 @@ pub fn parse_conf(path: &str) {
         HashMap::from_iter(profiles.into_iter().map(|p| (p.name.clone(), p)));
 
     if let Ok(mut store) = PROFILE.lock() {
-        *store = profiles_map;
+        *store = profiles_map.clone();
+    }
+
+    if let Ok(mut store) = GLOBAL_VARIABEL.lock() {
+        store.extend(global_variables.clone());
+    }
+
+    let mut file = File::new(path.to_string());
+    file.add_profiles(profiles_map);
+    file.add_imports(imports.clone());
+    file.add_global_variables(global_variables);
+
+    let imports: Imports = Imports {
+        import: imports,
+        file: path.to_string(),
+    };
+    if let Ok(mut store) = IMPORT.lock() {
+        store.push(imports.clone());
+    }
+}
+
+pub struct File {
+    pub path: String,
+
+    pub import: Vec<Import>,
+
+    pub profiles: HashMap<String, Profile>,
+
+    pub global_variables: HashMap<String, Variable>,
+}
+
+impl File {
+    fn new(path: String) -> Self {
+        File {
+            path,
+            import: vec![],
+            profiles: HashMap::new(),
+            global_variables: HashMap::new(),
+        }
+    }
+    pub fn add_filename(&mut self, path: String) {
+        self.path = path
+    }
+    pub fn add_profiles(&mut self, profile: HashMap<String, Profile>) {
+        if self.profiles.is_empty() {
+            self.profiles = profile
+        } else {
+            self.profiles.extend(profile)
+        }
+    }
+    pub fn add_global_variables(&mut self, global_variables: HashMap<String, Variable>) {
+        if self.global_variables.is_empty() {
+            self.global_variables = global_variables
+        } else {
+            self.global_variables.extend(global_variables)
+        }
+    }
+    pub fn add_import(&mut self, import: Import) {
+        self.import.push(import);
+    }
+    pub fn add_imports(&mut self, imports: Vec<Import>) {
+        if self.import.is_empty() {
+            self.import = imports;
+        } else {
+            self.import.extend(imports);
+        }
+    }
+    pub fn add_profile(&mut self, profile: Profile) {
+        self.profiles.insert(profile.name.clone(), profile);
+    }
+
+    pub fn add_global_variable(&mut self, variable: Variable) {
+        self.global_variables
+            .insert(variable.name.clone(), variable);
     }
 }
 
@@ -403,11 +479,17 @@ impl Color {
 }
 impl Imports {
     pub fn new() -> Self {
-        Imports { import: vec![] }
+        Imports {
+            import: vec![],
+            file: String::new(),
+        }
     }
 
     pub fn add(&mut self, path: String) {
         self.import.push(Import::new(path));
+    }
+    pub fn set_filename(&mut self, file: String) {
+        self.file = file;
     }
 }
 
@@ -434,9 +516,12 @@ impl Profile {
 
     pub fn add_variable(&mut self, variable: Variable) {
         if self.variables.is_some() {
-            self.variables.as_mut().unwrap().push(variable);
+            self.variables
+                .as_mut()
+                .unwrap()
+                .insert(variable.name.clone(), variable);
         } else if self.variables.is_none() {
-            self.variables = Some(vec![variable]);
+            self.variables = Some(HashMap::from([(variable.name.clone(), variable)]));
         }
     }
 
