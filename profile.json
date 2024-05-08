@@ -4,23 +4,17 @@
       {
         "name": "Other",
         "color": "grey",
-        "subcategories": [
-          "Other"
-        ]
+        "subcategories": ["Other"]
       },
       {
         "name": "User",
         "color": "yellow",
-        "subcategories": [
-          "Other"
-        ]
+        "subcategories": ["Other"]
       },
       {
         "name": "Kernel",
         "color": "orange",
-        "subcategories": [
-          "Other"
-        ]
+        "subcategories": ["Other"]
       }
     ],
     "debug": false,
@@ -72,63 +66,27 @@
     {
       "frameTable": {
         "length": 1,
-        "address": [
-          899019
-        ],
-        "inlineDepth": [
-          0
-        ],
-        "category": [
-          1
-        ],
-        "subcategory": [
-          0
-        ],
-        "func": [
-          0
-        ],
-        "nativeSymbol": [
-          null
-        ],
-        "innerWindowID": [
-          null
-        ],
-        "implementation": [
-          null
-        ],
-        "line": [
-          null
-        ],
-        "column": [
-          null
-        ],
-        "optimizations": [
-          null
-        ]
+        "address": [899019],
+        "inlineDepth": [0],
+        "category": [1],
+        "subcategory": [0],
+        "func": [0],
+        "nativeSymbol": [null],
+        "innerWindowID": [null],
+        "implementation": [null],
+        "line": [null],
+        "column": [null],
+        "optimizations": [null]
       },
       "funcTable": {
         "length": 1,
-        "name": [
-          1
-        ],
-        "isJS": [
-          false
-        ],
-        "relevantForJS": [
-          false
-        ],
-        "resource": [
-          0
-        ],
-        "fileName": [
-          null
-        ],
-        "lineNumber": [
-          null
-        ],
-        "columnNumber": [
-          null
-        ]
+        "name": [1],
+        "isJS": [false],
+        "relevantForJS": [false],
+        "resource": [0],
+        "fileName": [null],
+        "lineNumber": [null],
+        "columnNumber": [null]
       },
       "markers": {
         "length": 0,
@@ -157,155 +115,57 @@
       "registerTime": 0,
       "resourceTable": {
         "length": 1,
-        "lib": [
-          0
-        ],
-        "name": [
-          0
-        ],
-        "host": [
-          null
-        ],
-        "type": [
-          1
-        ]
+        "lib": [0],
+        "name": [0],
+        "host": [null],
+        "type": [1]
       },
       "samples": {
         "length": 6,
-        "stack": [
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
+        "stack": [0, 0, 0, 0, 0, 0],
         "time": [
-          963482.849392,
-          963482.85922,
-          963482.86405,
-          963482.868658,
-          963482.872986,
-          963482.877395
+          963482.849392, 963482.85922, 963482.86405, 963482.868658,
+          963482.872986, 963482.877395
         ],
-        "weight": [
-          1,
-          1,
-          1,
-          1,
-          1,
-          1
-        ],
+        "weight": [1, 1, 1, 1, 1, 1],
         "weightType": "samples",
-        "threadCPUDelta": [
-          0,
-          9,
-          4,
-          4,
-          4,
-          4
-        ]
+        "threadCPUDelta": [0, 9, 4, 4, 4, 4]
       },
       "stackTable": {
         "length": 1,
-        "prefix": [
-          null
-        ],
-        "frame": [
-          0
-        ],
-        "category": [
-          1
-        ],
-        "subcategory": [
-          0
-        ]
+        "prefix": [null],
+        "frame": [0],
+        "category": [1],
+        "subcategory": [0]
       },
-      "stringArray": [
-        "libc.so.6",
-        "0xdb7cb"
-      ],
+      "stringArray": ["libc.so.6", "0xdb7cb"],
       "tid": "15622",
       "unregisterTime": 963482.881412
     },
     {
       "frameTable": {
         "length": 2,
-        "address": [
-          116007,
-          119392
-        ],
-        "inlineDepth": [
-          0,
-          0
-        ],
-        "category": [
-          1,
-          1
-        ],
-        "subcategory": [
-          0,
-          0
-        ],
-        "func": [
-          0,
-          1
-        ],
-        "nativeSymbol": [
-          null,
-          null
-        ],
-        "innerWindowID": [
-          null,
-          null
-        ],
-        "implementation": [
-          null,
-          null
-        ],
-        "line": [
-          null,
-          null
-        ],
-        "column": [
-          null,
-          null
-        ],
-        "optimizations": [
-          null,
-          null
-        ]
+        "address": [116007, 119392],
+        "inlineDepth": [0, 0],
+        "category": [1, 1],
+        "subcategory": [0, 0],
+        "func": [0, 1],
+        "nativeSymbol": [null, null],
+        "innerWindowID": [null, null],
+        "implementation": [null, null],
+        "line": [null, null],
+        "column": [null, null],
+        "optimizations": [null, null]
       },
       "funcTable": {
         "length": 2,
-        "name": [
-          1,
-          2
-        ],
-        "isJS": [
-          false,
-          false
-        ],
-        "relevantForJS": [
-          false,
-          false
-        ],
-        "resource": [
-          0,
-          0
-        ],
-        "fileName": [
-          null,
-          null
-        ],
-        "lineNumber": [
-          null,
-          null
-        ],
-        "columnNumber": [
-          null,
-          null
-        ]
+        "name": [1, 2],
+        "isJS": [false, false],
+        "relevantForJS": [false, false],
+        "resource": [0, 0],
+        "fileName": [null, null],
+        "lineNumber": [null, null],
+        "columnNumber": [null, null]
       },
       "markers": {
         "length": 0,
@@ -334,59 +194,27 @@
       "registerTime": 963482.881412,
       "resourceTable": {
         "length": 1,
-        "lib": [
-          1
-        ],
-        "name": [
-          0
-        ],
-        "host": [
-          null
-        ],
-        "type": [
-          1
-        ]
+        "lib": [1],
+        "name": [0],
+        "host": [null],
+        "type": [1]
       },
       "samples": {
         "length": 1,
-        "stack": [
-          1
-        ],
-        "time": [
-          963483.016246
-        ],
-        "weight": [
-          1
-        ],
+        "stack": [1],
+        "time": [963483.016246],
+        "weight": [1],
         "weightType": "samples",
-        "threadCPUDelta": [
-          0
-        ]
+        "threadCPUDelta": [0]
       },
       "stackTable": {
         "length": 2,
-        "prefix": [
-          null,
-          0
-        ],
-        "frame": [
-          0,
-          1
-        ],
-        "category": [
-          1,
-          1
-        ],
-        "subcategory": [
-          0,
-          0
-        ]
+        "prefix": [null, 0],
+        "frame": [0, 1],
+        "category": [1, 1],
+        "subcategory": [0, 0]
       },
-      "stringArray": [
-        "ld-linux-x86-64.so.2",
-        "0x1c527",
-        "0x1d260"
-      ],
+      "stringArray": ["ld-linux-x86-64.so.2", "0x1c527", "0x1d260"],
       "tid": "15622.1",
       "unregisterTime": 963484.163025
     }
