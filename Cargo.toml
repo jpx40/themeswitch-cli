@@ -10,9 +10,11 @@ edition = "2021"
 anyhow = "1.0.82"
 async-recursion = "1.1.1"
 async-trait = "0.1.80"
+auto_enums = "0.8.5"
 #bumpalo = "3.16.0"
 #bumpalo-herd = "0.1.2"
 camino = { version = "1.1.6", features = ["serde"] }
+caret = "0.4.5"
 chrono = "0.4.38"
 chrono-tz = "0.9.0"
 clap = { version = "4.5.3", features = ["derive", "cargo", "env", "string"] }
@@ -21,11 +23,17 @@ compact_str = "0.7.1"
 config = "0.14.0"
 dirs = "5.0.1"
 dunce = "1.0.4"
+enum-iterator = "2.1.0"
+enum-iterator-derive = "1.4.0"
+enum-map = "2.7.3"
+enum-map-derive = "0.17.0"
+enum-ordinalize = "4.3.0"
 etcetera = "0.8.0"
 execute = "0.2.13"
 fs_extra = "1.3.0"
 #hashbrown = { version = "0.14.5", features = ["rayon", "alloc", "serde"] }
 home = "0.5.9"
+io-enum = "1.1.3"
 itertools = "0.12.1"
 lazy_static = "1.4.0"
 log = "0.4.21"
@@ -35,8 +43,10 @@ log = "0.4.21"
 minijinja = "2.0"
 # nix = { version = "0.28.0", features = ["socket", "uio", "zerocopy"] }
 nom = "7.1.3"
+num_enum = "0.7.2"
 #notify = "6.1.1"
 once_cell = "1.19.0"
+penum = "0.1.29"
 pest = "2.7.9"
 pest-ast = "0.3.4"
 pest_derive = "2.7.9"
@@ -51,6 +61,8 @@ serde_bytes = "0.11.14"
 serde_json = "1.0.114"
 #slab = { version = "0.4.9", features = ["serde"] }
 smallvec = "1.13.2"
+strum_macros = "0.26.2"
+synstructure = "0.13.1"
 tailcall = "1.0.1"
 tera = "1.19.1"
 thiserror = "1.0.59"
@@ -70,3 +82,11 @@ typenum = "1.17.0"
 which = "6.0.1"
 # zerocopy = { version = "0.7.32", features = ["zerocopy-derive"] }
 # zerocopy-derive = "0.7.32"
+#
+[profile.release]
+#strip = "debuginfo"
+debug = true
+#
+[profile.profiling]
+inherits = "release"
+debug = true

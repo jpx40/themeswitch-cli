@@ -1,4 +1,4 @@
-WHITESPACE = _{ " " | "\t" }
+WHITESPACE = _{ " " | "\t" | NEWLINE }
 
 val = @{ "\"" ~ char+ ~ "\"" }
 // value =  { inner }
@@ -22,8 +22,8 @@ char   = {
 }
 object = {
     "{" ~ "}"
-  | NEWLINE* ~ pair ~ NEWLINE* ~ ("," ~ NEWLINE* ~ pair ~ NEWLINE*)* ~ NEWLINE*
-  | NEWLINE* ~ "{" ~ NEWLINE* ~ pair ~ NEWLINE* ~ ("," ~ NEWLINE* ~ pair ~ NEWLINE*)* ~ NEWLINE* ~ "}"
+  | NEWLINE* ~ o_pair ~ NEWLINE* ~ ("," ~ NEWLINE* ~ o_pair ~ NEWLINE*)* ~ NEWLINE*
+  | NEWLINE* ~ "{" ~ NEWLINE* ~ o_pair ~ NEWLINE* ~ ("," ~ NEWLINE* ~ o_pair ~ NEWLINE*)* ~ NEWLINE* ~ "}"
 }
 
 key = @{ identifier | string | literal }
@@ -58,6 +58,10 @@ unicode = @{ "u" ~ ASCII_HEX_DIGIT{4} | "U" ~ ASCII_HEX_DIGIT{8} }
 
 pair = { key ~ "=" ~ string }
 
+engine = { pair }
+
+o_pair = { key ~ ":" ~ string }
+
 array = {
     "[" ~ "]"
   | "[" ~ string ~ ("," ~ string)* ~ "]"
@@ -78,8 +82,8 @@ path = { "path" ~ "=" ~ string }
 cmd = { ("cmd" ~ "=" ~ string) }
 
 arg       = { "arg" ~ "=" ~ array }
-import    = { (NEWLINE)* ~ "import " ~ value ~ (NEWLINE)* }
-wallpaper = { ("wallpaper" ~ "{" ~ (NEWLINE)* ~ (path | array) ~ (NEWLINE)* ~ "}") }
+import    = { (NEWLINE)* ~ "import " ~ key ~ (NEWLINE)* }
+wallpaper = { ("wallpaper" ~ "{" ~ (NEWLINE)* ~ engine? ~ (path | array) ~ engine? ~ (NEWLINE)* ~ "}") }
 out       = { "output" ~ "=" ~ val }
 script    = { "script" ~ "{" ~ (NEWLINE)* ~ (path ~ (NEWLINE)* | param ~ (NEWLINE)* | arg ~ (NEWLINE)*)+ ~ (NEWLINE)* ~ "}" }
 exec      = { "exec" ~ "{" ~ (NEWLINE)* ~ (path ~ (NEWLINE)* | cmd ~ (NEWLINE)* | param ~ (NEWLINE)* | arg ~ (NEWLINE)*)+ ~ (NEWLINE)* ~ "}" }
@@ -110,8 +114,8 @@ int     = @{ "0" | (ASCII_NONZERO_DIGIT ~ digits?) }
 digits  = @{ (ASCII_DIGIT | ("_" ~ ASCII_DIGIT))+ }
 exp     = @{ ("E" | "e") ~ ("+" | "-")? ~ int }
 
-variable = { (var ~ "=" ~ string) }
+variable = { ("$" ~ key ~ "=" ~ string) }
 
 file = {
-    SOI ~ (NEWLINE)* ~ (import ~ NEWLINE* | variable ~ NEWLINE* | profile ~ NEWLINE*)* ~ (NEWLINE)* ~ EOI
+    SOI ~ (NEWLINE)* ~ (import | variable | profile)* ~ (NEWLINE)* ~ EOI
 }

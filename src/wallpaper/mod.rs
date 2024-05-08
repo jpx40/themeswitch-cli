@@ -1,3 +1,5 @@
+pub mod wpaper;
+
 use camino::Utf8Path;
 use core::str;
 use execute::Execute;
