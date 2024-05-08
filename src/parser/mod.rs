@@ -48,6 +48,13 @@ enum CONFValue<'a> {
     Out(&'a str),
     Null,
 }
+
+pub struct Wpaper {
+    pub egine: Option<String>,
+    pub path: Option<String>,
+    pub wallpaper: Option<Vec<String>>,
+}
+
 //
 // pub fn parse_conf(path: &str) -> Result<Conf, String> {
 //     let mut ast = vec![];
