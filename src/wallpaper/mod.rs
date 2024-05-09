@@ -5,13 +5,14 @@ use execute::Execute;
 use globset;
 use itertools::Itertools;
 use lazy_static::{lazy_static, LazyStatic};
+use rustix::path::Arg;
 
 use crate::util::path::*;
 use crate::util::{self, path};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::process::Command;
-use std::{collections::HashMap, fs::File, path, sync::Mutex};
+use std::{collections::HashMap, fs::File, sync::Mutex};
 use walkdir;
 lazy_static! {
     pub static ref ACTIVE_WALLPAPER: Mutex<Wallpaper> = Mutex::new(Wallpaper::new(
@@ -92,44 +93,27 @@ impl Group {
             let path = Utf8Path::new(path);
             if path.exists() {
                 if path.is_dir() {
-                    let walker = walkdir::WalkDir::new(path).unwrap().into_iter();
-                    for entry in walker
-                        .filter_entry(|e| !is_hidden(e))
-                        .filter_entry(|e| !e.is_dir())
-                    {
+                    let walker = walkdir::WalkDir::new(path).into_iter();
+                    for entry in walker.filter_entry(|e| !is_hidden(e) || !is_dir(e)) {
                         if let Ok(entry) = entry {
                             if entry.path().is_file() && entry.path().extension().is_some() {
-                                let file_name = entry
-                                    .file_name()
-                                    .to_str()
-                                    .unwrap()
-                                    .to_string_lossy()
-                                    .to_string();
-                                let path: String = entry
-                                    .path()
-                                    .extension()
-                                    .unwrap()
-                                    .to_string_lossy()
-                                    .unwrap()
-                                    .to_string();
+                                let file_name = entry.file_name().to_string_lossy().to_string();
+                                let path: String = entry.path().to_string_lossy().to_string();
 
-                                let extension =
-                                    entry.path().strip_prefix(path).unwrap().to_str().unwrap();
-                                let prefix: String = entry
-                                    .path()
-                                    .file_prefix()
-                                    .unwrap()
-                                    .to_string_lossy()
-                                    .to_string();
+                                let extension = entry.path().extension().unwrap().to_str().unwrap();
+                                let prefix = file_prefix(entry.path());
+
                                 match extension {
                                     "jpg" | "png" | "jpeg" | "webp" | "gif | .jpg" | ".png"
                                     | ".jpeg" | ".webp" | ".gif" => {
                                         let path = util::path::expand_path(&path)
                                             .unwrap_or_else(|err| panic!("{err}"));
-
-                                        let wp = Wallpaper::new(prefix, path);
-                                        self.list.push(wp);
+                                        if let Some(prefix) = prefix {
+                                            let wp = Wallpaper::new(prefix, path);
+                                            self.list.push(wp);
+                                        }
                                     }
+                                    _ => {}
                                 }
                             }
                         }

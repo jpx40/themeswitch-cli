@@ -1,13 +1,15 @@
+use crate::util::env::current_working_dir;
 use camino::Utf8Path;
 use compact_str::ToCompactString;
 pub use etcetera::home_dir;
 use std::{
     borrow::Cow,
     ffi::OsString,
+    i16,
+    ops::Index,
     path::{Component, Path, PathBuf, MAIN_SEPARATOR_STR},
 };
-
-use crate::util::env::current_working_dir;
+use walkdir::{DirEntry, WalkDir};
 
 /// Replaces users home directory from `path` with tilde `~` if the directory
 /// is available, otherwise returns the path unchanged.
@@ -28,7 +30,54 @@ where
 
     path
 }
+pub fn is_hidden(entry: &DirEntry) -> bool {
+    entry
+        .file_name()
+        .to_str()
+        .map(|s| s.starts_with("."))
+        .unwrap_or(false)
+}
 
+pub fn is_dir(entry: &DirEntry) -> bool {
+    entry.path().is_dir()
+}
+
+pub fn file_prefix(path: &Path) -> Option<String> {
+    let path = path.file_name();
+    if let Some(path) = path {
+        let path = path.to_string_lossy().to_string();
+        if !match_char(&path, ".", 0) {
+            if path.contains(".") {
+                let path = path.split('.').collect::<Vec<&str>>()[0].to_string();
+                Some(path)
+            } else {
+                return None;
+            }
+        } else {
+            let path = path.split('.').collect::<Vec<&str>>()[1].to_string();
+            Some(path)
+        }
+    } else {
+        None
+    }
+}
+
+pub fn match_char(s: &str, pattern: &str, index: i32) -> bool {
+    let index = index as usize;
+
+    let chars = s.chars();
+
+    for (i, c) in chars.enumerate() {
+        if i == index {
+            if &c.to_string() == pattern {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+    false
+}
 pub fn expand_path(path: &str) -> Result<String, String> {
     let mut os_path = Utf8Path::new(path);
     let mut path_temp: String = String::new();
