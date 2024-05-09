@@ -1,14 +1,18 @@
 pub mod wpaper;
-
 use camino::Utf8Path;
 use core::str;
 use execute::Execute;
+use globset;
 use itertools::Itertools;
 use lazy_static::{lazy_static, LazyStatic};
+
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::process::Command;
 use std::{collections::HashMap, fs::File, path, sync::Mutex};
+use walkdir;
+
+use crate::util::{self, path};
 lazy_static! {
     pub static ref ACTIVE_WALLPAPER: Mutex<Wallpaper> = Mutex::new(Wallpaper::new(
         "default.png".to_string(),
@@ -67,14 +71,76 @@ impl WallpaperListConfig {
 #[derive(Hash, Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Group {
     pub name: String,
+    pub path: Option<String>,
     pub list: Vec<Wallpaper>,
 }
 impl Group {
     pub fn new(name: String) -> Group {
         Group {
             name,
+            path: None,
             list: Vec::new(),
         }
+    }
+
+    pub fn set_path(&mut self, path: &str) {
+        let path = util::path::expand_path(path).unwrap_or_else(|e| panic!("{}", e));
+        self.path = Some(path);
+    }
+    pub fn fill_wallpaper(&mut self) -> Result<(), String> {
+        if let Some(path) = &self.path {
+            let path = Utf8Path::new(path);
+            if path.exists() {
+                if path.is_dir() {
+                    let walker = walkdir::WalkDir::new(path).unwrap().into_iter();
+                    for entry in walker
+                        .filter_entry(|e| !is_hidden(e))
+                        .filter_entry(|e| !e.is_dir())
+                    {
+                        if let Ok(entry) = entry {
+                            if entry.path().is_file() {
+                                let file_name = entry
+                                    .file_name()
+                                    .to_str()
+                                    .unwrap()
+                                    .to_string_lossy()
+                                    .to_string();
+                                let path: String = entry
+                                    .path()
+                                    .extension()
+                                    .unwrap()
+                                    .to_string_lossy()
+                                    .unwrap()
+                                    .to_string();
+
+                                let extension =
+                                    entry.path().strip_prefix(path).unwrap().to_str().unwrap();
+                                let prefix: String = entry
+                                    .path()
+                                    .file_prefix()
+                                    .unwrap()
+                                    .to_string_lossy()
+                                    .to_string();
+                                match extension {
+                                    "jpg" | "png" | "jpeg" | "webp" | "gif | .jpg" | ".png"
+                                    | ".jpeg" | ".webp" | ".gif" => {
+                                        let path = util::path::expand_path(&path)
+                                            .unwrap_or_else(|err| panic!("{err}"));
+
+                                        let wp = Wallpaper::new(prefix, path);
+                                        self.list.push(wp);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    return Err("Not a directory".to_string());
+                }
+            }
+            return Err("Path not found".to_string());
+        }
+        Ok(())
     }
 
     pub fn set_group(&mut self) {

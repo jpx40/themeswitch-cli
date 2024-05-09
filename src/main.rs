@@ -10,8 +10,11 @@ mod util;
 mod wallpaper;
 use crate::parser::*;
 use crate::store::*;
+use crate::wallpaper::wpaper::Paper;
+use core::matches;
 use pest::Parser;
 use pest_derive::Parser;
+use try_match::{match_ok, try_match};
 fn main() {
     //     let w = wallpaper::Wallpaper {
     //         name: "cat_lofi_cafe".to_string(),
@@ -28,9 +31,14 @@ fn main() {
     let mut i = IMPORT.lock().unwrap().clone();
     for (k, v) in p.iter().clone() {
         let w = v.wallpaper.clone();
+
         if w.is_some() {
-            let path = w.unwrap().path.clone();
-            println!("{:?}", path);
+            let wall = w.unwrap().clone();
+
+            if let Paper::Wpaper(w) = wall {
+                let path = w.path.clone().unwrap();
+                println!("{:?}", path);
+            }
         }
     }
 
@@ -41,6 +49,7 @@ fn main() {
 
 const _CHECK_OS: () = if cfg!(all(
     not(target_os = "linux"),
+    not(target_os = "macos"),
     not(feature = "unsupported-os")
 )) {
     panic!("Sorry, only Linux is currently supported.");

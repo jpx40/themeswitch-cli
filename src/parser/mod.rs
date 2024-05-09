@@ -2,6 +2,7 @@ use crate::store::PROFILE;
 use crate::util::path::expand_path;
 use crate::{parser, template, util};
 use crate::{store::*, wallpaper};
+
 use camino::Utf8Path;
 use itertools::{cloned, ProcessResults};
 use pest::iterators::{Pair, Pairs};
@@ -119,7 +120,7 @@ pub struct Exec {
     pub params: Option<Vec<HashMap<String, String>>>,
 }
 
-pub fn parse_conf(path: &str) {
+pub fn parse_conf(path: &str) -> Result<(), String> {
     let unparsed_file = std::fs::read_to_string(path).expect("cannot read file");
 
     let file = CONFParser::parse(Rule::file, &unparsed_file)
@@ -131,7 +132,12 @@ pub fn parse_conf(path: &str) {
     let mut current_section_name = "";
 
     fn get_path(path: &str) -> &str {
-        path.split('=').collect::<Vec<&str>>()[1]
+        let mut path = path.split('=').collect::<Vec<&str>>()[1];
+        if path.contains('\"') {
+            path = path.trim_matches('\"');
+        }
+
+        path
     }
 
     fn get_args(args: Pairs<Rule>) -> Vec<String> {
@@ -229,6 +235,8 @@ pub fn parse_conf(path: &str) {
             match line.as_rule() {
                 Rule::path => {
                     let path = get_path(line.as_str());
+
+                    let path = expand_path(path).unwrap_or_else(|err| panic!("{err}"));
                     // let path = if let Some(path) = Utf8Path::new(path)
                     //     .canonicalize()
                     //     .unwrap_or_else(|err| panic!("{err}"))
@@ -327,6 +335,8 @@ pub fn parse_conf(path: &str) {
                                 }
                                 Rule::path => {
                                     let path = get_path(line.as_str());
+                                    let path =
+                                        expand_path(path).unwrap_or_else(|err| panic!("{err}"));
                                     script.set_path(path.to_string());
                                 }
                                 Rule::param => {
@@ -463,6 +473,7 @@ pub fn parse_conf(path: &str) {
     if let Ok(mut store) = IMPORT.lock() {
         store.push(imports.clone());
     }
+    Ok(())
 }
 
 pub struct File {

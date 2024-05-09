@@ -24,9 +24,8 @@ pub enum Paper {
 pub fn check_paper(paper: Paper) {
     if let Paper::Wpaper(wpaper) = paper {
         if let Some(path) = &wpaper.path {
-            let path = Path::new(&path);
-            let path = path.canonicalize().unwrap_or_else(|err| panic!("{err}"));
-            if path.exists() {}
+        
+       }
         } else if let Some(wallpaper) = &wpaper.wallpaper {
             let wallpaper = wallpaper.to_vec();
         }

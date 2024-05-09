@@ -30,6 +30,7 @@ enum-map-derive = "0.17.0"
 enum-ordinalize = "4.3.0"
 etcetera = "0.8.0"
 execute = "0.2.13"
+extract-variant = "=1.0.0"
 fs_extra = "1.3.0"
 globset = "0.4.14"
 #hashbrown = { version = "0.14.5", features = ["rayon", "alloc", "serde"] }
@@ -62,6 +63,7 @@ serde = { version = "1.0.197", features = ["derive"] }
 serde_json = "1.0.114"
 #slab = { version = "0.4.9", features = ["serde"] }
 smallvec = "1.13.2"
+string-patterns = "0.3.9"
 strum_macros = "0.26.2"
 #synstructure = "0.13.1"
 tailcall = "1.0.1"
@@ -70,7 +72,8 @@ thiserror = "1.0.59"
 
 tokio = { version = "1.37.0", features = ["full"] }
 toml = "0.8.12"
-try_match = "0.4.1"
+trie-match = "0.2.0"
+try_match = { version = "0.4.1", features = ["std"] }
 #typed-arena = "2.0.2"
 typenum = "1.17.0"
 walkdir = "2.5.0"
