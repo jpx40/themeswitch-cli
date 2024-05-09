@@ -98,7 +98,7 @@ impl Group {
                         .filter_entry(|e| !e.is_dir())
                     {
                         if let Ok(entry) = entry {
-                            if entry.path().is_file() {
+                            if entry.path().is_file() && entry.path().extension().is_some() {
                                 let file_name = entry
                                     .file_name()
                                     .to_str()
