@@ -26,10 +26,16 @@ fn main() {
     parser::parse_conf("test.conf");
     let mut p = PROFILE.lock().unwrap().clone();
     let mut i = IMPORT.lock().unwrap().clone();
-    for (k, v) in p.iter() {}
+    for (k, v) in p.iter().clone() {
+        let w = v.wallpaper.clone();
+        if w.is_some() {
+            let path = w.unwrap().path.clone();
+            println!("{:?}", path);
+        }
+    }
 
     for i in i.iter() {
-        println!("{:?}", i)
+        // println!("{:?}", i)
     }
 }
 

@@ -34,13 +34,13 @@ lazy_static! {
 lazy_static! {
     pub static ref SWAP_TIME: Mutex<u32> = Mutex::new(0);
 }
-#[derive(Hash, Debug, Clone, Deserialize, Serialize)]
+#[derive(Hash, Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct WallpaperList {
     imports: Option<Vec<Imports>>,
     pub list: Vec<Group>,
     wallpaper_config: Option<WallpaperListConfig>,
 }
-#[derive(Hash, Debug, Clone, Deserialize, Serialize)]
+#[derive(Hash, Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Imports {}
 impl WallpaperList {
     pub fn new() -> WallpaperList {
@@ -51,8 +51,7 @@ impl WallpaperList {
         }
     }
 }
-
-#[derive(Hash, Debug, Clone, Deserialize, Serialize)]
+#[derive(Hash, Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct WallpaperListConfig {
     theme: Option<crate::theme::Theme>,
     time: Option<String>,

@@ -58,7 +58,7 @@ unicode = @{ "u" ~ ASCII_HEX_DIGIT{4} | "U" ~ ASCII_HEX_DIGIT{8} }
 
 pair = { key ~ "=" ~ string }
 
-engine = { pair }
+engine = { "engine" ~ "=" ~ string }
 
 o_pair = { key ~ ":" ~ string }
 

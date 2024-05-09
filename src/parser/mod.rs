@@ -1,7 +1,7 @@
 use crate::store::PROFILE;
-use crate::store::*;
 use crate::util::path::expand_path;
 use crate::{parser, template, util};
+use crate::{store::*, wallpaper};
 use camino::Utf8Path;
 use itertools::{cloned, ProcessResults};
 use pest::iterators::{Pair, Pairs};
@@ -14,7 +14,8 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::collections::VecDeque;
 use std::hash::Hash;
-use std::path::Path;
+
+use std::path::{self, Path};
 use std::process::Command;
 use std::string::String;
 use std::sync::{Arc, Mutex};
@@ -49,8 +50,9 @@ enum CONFValue<'a> {
     Null,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Wpaper {
-    pub egine: Option<String>,
+    pub engine: Option<String>,
     pub path: Option<String>,
     pub wallpaper: Option<Vec<String>>,
 }
@@ -69,6 +71,7 @@ pub struct Profile {
     pub script: Option<Vec<Script>>,
     pub template: Option<Vec<Template>>,
     pub color: Option<Color>,
+    pub wallpaper: Option<wallpaper::wpaper::Paper>,
 }
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
 pub struct Variable {
@@ -219,6 +222,56 @@ pub fn parse_conf(path: &str) {
         }
         Variable { name, value }
     }
+    fn get_wallpaper(wallpaper: Pairs<Rule>) -> Wpaper {
+        let mut w = Wpaper::new();
+        //   println!("{:#?}", wallpaper);
+        for line in wallpaper {
+            match line.as_rule() {
+                Rule::path => {
+                    let path = get_path(line.as_str());
+                    // let path = if let Some(path) = Utf8Path::new(path)
+                    //     .canonicalize()
+                    //     .unwrap_or_else(|err| panic!("{err}"))
+                    //     .to_str()
+                    // {
+                    //     path.to_string()
+                    // } else {
+                    //     panic!("not a valid path")
+                    // };
+
+                    w.set_path(path.to_string());
+                }
+                Rule::array => {
+                    let mut array: Vec<String> = Vec::new();
+                    for line in line.into_inner() {
+                        let mut s = String::new();
+                        if line.as_rule() == Rule::string {
+                            s = line.as_str().to_string();
+                        }
+                        if !s.is_empty() {
+                            array.push(s);
+                        }
+                    }
+
+                    w.set_wallpaper(array);
+                }
+                Rule::engine => {
+                    let mut engine = String::new();
+
+                    for line in line.into_inner() {
+                        if Rule::string == line.as_rule() {
+                            engine = line.as_str().to_string();
+                        }
+                    }
+                    if !engine.is_empty() {
+                        w.set_engine(engine)
+                    }
+                }
+                _ => {}
+            }
+        }
+        w
+    }
 
     //
     let mut imports: Vec<Import> = Vec::new();
@@ -323,6 +376,11 @@ pub fn parse_conf(path: &str) {
                         }
                         profile.add_exec(exec);
                     }
+                    Rule::wallpaper => {
+                        let wallpaper = get_wallpaper(line.into_inner());
+
+                        profile.set_wallpaper(wallpaper);
+                    }
 
                     Rule::template => {
                         let mut template = Template::new();
@@ -417,6 +475,24 @@ pub struct File {
     pub global_variables: HashMap<String, Variable>,
 }
 
+impl Wpaper {
+    fn new() -> Self {
+        Wpaper {
+            engine: None,
+            path: None,
+            wallpaper: None,
+        }
+    }
+    fn set_path(&mut self, path: String) {
+        self.path = Some(path)
+    }
+    fn set_engine(&mut self, engine: String) {
+        self.engine = Some(engine);
+    }
+    fn set_wallpaper(&mut self, wallpaper: Vec<String>) {
+        self.wallpaper = Some(wallpaper);
+    }
+}
 impl File {
     fn new() -> Self {
         File {
@@ -516,8 +592,14 @@ impl Profile {
             script: None,
             template: None,
             color: None,
+            wallpaper: None,
         }
     }
+
+    pub fn set_wallpaper(&mut self, wallpaper: Wpaper) {
+        self.wallpaper = Some(wallpaper::wpaper::Paper::Wpaper(wallpaper));
+    }
+
     pub fn set_name(&mut self, name: String) {
         self.name = name;
     }
