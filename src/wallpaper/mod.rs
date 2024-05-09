@@ -6,13 +6,13 @@ use globset;
 use itertools::Itertools;
 use lazy_static::{lazy_static, LazyStatic};
 
+use crate::util::path::*;
+use crate::util::{self, path};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::process::Command;
 use std::{collections::HashMap, fs::File, path, sync::Mutex};
 use walkdir;
-
-use crate::util::{self, path};
 lazy_static! {
     pub static ref ACTIVE_WALLPAPER: Mutex<Wallpaper> = Mutex::new(Wallpaper::new(
         "default.png".to_string(),
@@ -204,42 +204,46 @@ impl Wallpaper {
         }
     }
     pub fn set_wallpaper(&self) -> Result<(), String> {
-        let mut path: String = String::new();
-        if self.path.contains('~') {
-            path = match dirs::home_dir() {
-                Some(p) => {
-                    let path = self.path.clone().replace("~", "");
-                    p.canonicalize()
-                        .unwrap_or_else(|err| panic!("{}", err.to_string()))
-                        .to_string_lossy()
-                        .to_string()
-                        + &path
-                }
-                None => return Err("Failed to read file".to_string()),
-            };
-        } else {
-            path = match dirs::config_dir() {
-                Some(p) => {
-                    p.canonicalize()
-                        .unwrap_or_else(|err| panic!("{}", err.to_string()))
-                        .to_string_lossy()
-                        .to_string()
-                        + "/swww/"
-                        + &self.path
-                }
-                None => return Err("Failed to read file".to_string()),
-            };
-        }
-        println!("{}", path);
+        let path: String = match expand_path(&self.path) {
+            Ok(path) => path,
+            Err(err) => return Err(err.to_string()),
+        };
+
+        // if self.path.contains('~') {
+        //     path = match dirs::home_dir() {
+        //         Some(p) => {
+        //             let path = self.path.clone().replace("~", "");
+        //             p.canonicalize()
+        //                 .unwrap_or_else(|err| panic!("{}", err.to_string()))
+        //                 .to_string_lossy()
+        //                 .to_string()
+        //                 + &path
+        //         }
+        //         None => return Err("Failed to read file".to_string()),
+        //     };
+        // } else {
+        //     path = match dirs::config_dir() {
+        //         Some(p) => {
+        //             p.canonicalize()
+        //                 .unwrap_or_else(|err| panic!("{}", err.to_string()))
+        //                 .to_string_lossy()
+        //                 .to_string()
+        //                 + "/swww/"
+        //                 + &self.path
+        //         }
+        //         None => return Err("Failed to read file".to_string()),
+        //     };
+        // }
+        // println!("{}", path);
         // let path = Utf8Path::new(&path)
         //     .canonicalize_utf8()
         //     .unwrap_or_else(|err| {
         //         panic!("{}", err.to_string());
         //     });
 
-        if !Path::new(&path).exists() && !Path::new(&path).is_file() {
-            return Err("File not found".to_string());
-        }
+        // if !Path::new(&path).exists() && !Path::new(&path).is_file() {
+        //     return Err("File not found".to_string());
+        // }
         let mut sh = Command::new("swww");
         //https://stackoverflow.com/questions/27791532/how-do-i-create-a-global-mutable-singleton
         if let Ok(mut value) = ACTIVE_WALLPAPER.lock() {

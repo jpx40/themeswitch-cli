@@ -1427,6 +1427,7 @@ dependencies = [
  "rayon-macro",
  "regex",
  "ron",
+ "rustix",
  "scopeguard",
  "serde",
  "serde_json",
