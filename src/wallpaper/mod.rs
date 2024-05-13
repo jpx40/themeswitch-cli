@@ -151,6 +151,7 @@ impl Group {
             //    }
             //    return Err("Path not found".to_string());
         }
+        println!("{:?}", self.list);
         Ok(())
     }
 

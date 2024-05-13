@@ -10,6 +10,7 @@ use crate::wallpaper::WallpaperList;
 use crate::wallpaper::*;
 use crate::Wpaper;
 use camino::{ReadDirUtf8, Utf8Path, Utf8PathBuf};
+use fs_extra::file;
 use globset::{Glob, GlobSetBuilder};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -39,10 +40,51 @@ pub fn check_paper(paper: Paper) -> Result<Paper, String> {
                     if path.is_dir() {
                         let walker = WalkDir::new(path);
                         let mut wallpaper_list = WallpaperList::new();
-
+                        let mut file_check = false;
                         for entry in walker.into_iter().filter_entry(|e| !is_hidden(e)) {
                             if let Ok(entry) = entry {
                                 if entry.path().is_file() {
+                                    file_check = {
+                                        let path = entry.path();
+                                        let extension = if let Some(extension) =
+                                            path.extension().unwrap().to_str()
+                                        {
+                                            extension
+                                        } else {
+                                            return Err("Invalid file extension".to_string());
+                                        };
+                                        match extension {
+                                            "jpg" | "png" | "jpeg" | "webp" | "gif | .jpg"
+                                            | ".png" | ".jpeg" | ".webp" | ".gif" => true,
+                                            _ => false,
+                                        }
+                                    };
+                                }
+                                if file_check {
+                                    break;
+                                }
+                            } else if let Err(e) = entry {
+                                return Err(e.to_string());
+                            }
+                        }
+                        let walker = WalkDir::new(path);
+                        for entry in walker.into_iter().filter_entry(|e| !is_hidden(e)) {
+                            if let Ok(entry) = entry {
+                                if entry.path().is_file() && {
+                                    let path = entry.path();
+                                    let extension = if let Some(extension) =
+                                        path.extension().unwrap().to_str()
+                                    {
+                                        extension
+                                    } else {
+                                        return Err("Invalid file extension".to_string());
+                                    };
+                                    match extension {
+                                        "jpg" | "png" | "jpeg" | "webp" | "gif | .jpg" | ".png"
+                                        | ".jpeg" | ".webp" | ".gif" => true,
+                                        _ => false,
+                                    }
+                                } {
                                     let name =
                                         path.file_name().unwrap().to_string_lossy().to_string();
 
@@ -67,7 +109,7 @@ pub fn check_paper(paper: Paper) -> Result<Paper, String> {
                                     group.path = Some(path_str);
                                     group.fill_wallpaper()?;
                                     return Ok(Paper::Group(group));
-                                } else if entry.path().is_dir() {
+                                } else if entry.path().is_dir() && !file_check {
                                     wallpaper_list.add_group_from_path(
                                         entry.path().to_string_lossy().to_string(),
                                     );
