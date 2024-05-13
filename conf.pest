@@ -46,7 +46,7 @@ value = _{
 
 
 
-config = {"config" ~ "{" ~ "}"}
+config = {"config" ~ "{" ~ object  ~ "}"}
 identifier = { (ASCII_ALPHANUMERIC | "_" | "-")+ }
 
 literal            = @{ "'" ~ (!"'" ~ ANY)* ~ "'" }
