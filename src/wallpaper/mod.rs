@@ -1,14 +1,14 @@
 pub mod wpaper;
+use crate::util::path::*;
+use crate::util::{self, path};
 use camino::Utf8Path;
 use core::str;
 use execute::Execute;
 use globset;
+use globset::{Glob, GlobSetBuilder};
 use itertools::Itertools;
 use lazy_static::{lazy_static, LazyStatic};
 use rustix::path::Arg;
-
-use crate::util::path::*;
-use crate::util::{self, path};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::process::Command;
@@ -43,7 +43,7 @@ lazy_static! {
 pub struct WallpaperList {
     imports: Option<Vec<Imports>>,
     pub list: Vec<Group>,
-    wallpaper_config: WallpaperListConfig,
+    pub config: WallpaperConfig,
 }
 #[derive(Hash, Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Imports {}
@@ -52,8 +52,11 @@ impl WallpaperList {
         WallpaperList {
             list: Vec::new(),
             imports: None,
-            wallpaper_config: WallpaperListConfig::new(),
+            config: WallpaperConfig::new(),
         }
+    }
+    pub fn set_config(&mut self, config: WallpaperConfig) {
+        self.config = config;
     }
 }
 #[derive(Hash, Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
