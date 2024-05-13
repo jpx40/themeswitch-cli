@@ -3,6 +3,7 @@ use crate::util::path::expand_path;
 use crate::{parser, template, util};
 use crate::{store::*, wallpaper};
 
+use crate::wallpaper::wpaper::check_paper;
 use camino::Utf8Path;
 use itertools::{cloned, ProcessResults};
 use pest::iterators::{Pair, Pairs};
@@ -15,7 +16,6 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::collections::VecDeque;
 use std::hash::Hash;
-
 use std::path::{self, Path};
 use std::process::Command;
 use std::string::String;
@@ -50,14 +50,47 @@ enum CONFValue<'a> {
     Out(&'a str),
     Null,
 }
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Wpaper {
     pub engine: Option<String>,
     pub path: Option<String>,
     pub wallpaper: Option<Vec<String>>,
+    pub config: Option<HashMap<String, String>>,
 }
 
+pub struct File {
+    pub path: String,
+
+    pub import: Vec<Import>,
+
+    pub profiles: HashMap<String, Profile>,
+
+    pub global_variables: HashMap<String, Variable>,
+}
+
+impl Wpaper {
+    fn new() -> Self {
+        Wpaper {
+            engine: None,
+            path: None,
+            wallpaper: None,
+            config: None,
+        }
+    }
+    fn set_path(&mut self, path: String) {
+        self.path = Some(path)
+    }
+    pub fn set_config(&mut self, config: HashMap<String, String>) {
+        self.config = Some(config);
+    }
+
+    fn set_engine(&mut self, engine: String) {
+        self.engine = Some(engine);
+    }
+    fn set_wallpaper(&mut self, wallpaper: Vec<String>) {
+        self.wallpaper = Some(wallpaper);
+    }
+}
 //
 // pub fn parse_conf(path: &str) -> Result<Conf, String> {
 //     let mut ast = vec![];
@@ -477,34 +510,6 @@ pub fn parse_conf(path: &str) -> Result<(), String> {
     Ok(())
 }
 
-pub struct File {
-    pub path: String,
-
-    pub import: Vec<Import>,
-
-    pub profiles: HashMap<String, Profile>,
-
-    pub global_variables: HashMap<String, Variable>,
-}
-
-impl Wpaper {
-    fn new() -> Self {
-        Wpaper {
-            engine: None,
-            path: None,
-            wallpaper: None,
-        }
-    }
-    fn set_path(&mut self, path: String) {
-        self.path = Some(path)
-    }
-    fn set_engine(&mut self, engine: String) {
-        self.engine = Some(engine);
-    }
-    fn set_wallpaper(&mut self, wallpaper: Vec<String>) {
-        self.wallpaper = Some(wallpaper);
-    }
-}
 impl File {
     fn new() -> Self {
         File {
@@ -609,7 +614,12 @@ impl Profile {
     }
 
     pub fn set_wallpaper(&mut self, wallpaper: Wpaper) {
-        self.wallpaper = Some(wallpaper::wpaper::Paper::Wpaper(wallpaper));
+        let wallpaper = wallpaper::wpaper::Paper::Wpaper(wallpaper);
+        let wallpaper = match check_paper(wallpaper) {
+            Ok(w) => w,
+            Err(e) => panic!("{e}"),
+        };
+        self.wallpaper = Some(wallpaper);
     }
 
     pub fn set_name(&mut self, name: String) {

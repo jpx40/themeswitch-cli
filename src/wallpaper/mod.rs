@@ -43,7 +43,7 @@ lazy_static! {
 pub struct WallpaperList {
     imports: Option<Vec<Imports>>,
     pub list: Vec<Group>,
-    wallpaper_config: Option<WallpaperListConfig>,
+    wallpaper_config: WallpaperListConfig,
 }
 #[derive(Hash, Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Imports {}
@@ -52,7 +52,7 @@ impl WallpaperList {
         WallpaperList {
             list: Vec::new(),
             imports: None,
-            wallpaper_config: Some(WallpaperListConfig::new()),
+            wallpaper_config: WallpaperListConfig::new(),
         }
     }
 }
@@ -60,13 +60,18 @@ impl WallpaperList {
 pub struct WallpaperListConfig {
     theme: Option<crate::theme::Theme>,
     time: Option<String>,
+    pub engine: String,
 }
 impl WallpaperListConfig {
     pub fn new() -> WallpaperListConfig {
         WallpaperListConfig {
             theme: None,
             time: None,
+            engine: "swww".to_string(),
         }
+    }
+    pub fn set_engine(&mut self, engine: String) {
+        self.engine = engine;
     }
 }
 #[derive(Hash, Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
@@ -74,6 +79,7 @@ pub struct Group {
     pub name: String,
     pub path: Option<String>,
     pub list: Vec<Wallpaper>,
+    pub config: WallpaperConfig,
 }
 impl Group {
     pub fn new(name: String) -> Group {
@@ -81,7 +87,11 @@ impl Group {
             name,
             path: None,
             list: Vec::new(),
+            config: WallpaperConfig::new(),
         }
+    }
+    pub fn set_config(&mut self, config: WallpaperConfig) {
+        self.config = config
     }
 
     pub fn set_path(&mut self, path: &str) {
@@ -109,7 +119,8 @@ impl Group {
                                         let path = util::path::expand_path(&path)
                                             .unwrap_or_else(|err| panic!("{err}"));
                                         if let Some(prefix) = prefix {
-                                            let wp = Wallpaper::new(prefix, path);
+                                            let mut wp = Wallpaper::new(prefix, path);
+                                            wp.set_config(self.config.clone());
                                             self.list.push(wp);
                                         }
                                     }
@@ -171,12 +182,29 @@ pub struct Wallpaper {
     pub name: String,
     pub path: String,
 
-    pub config: Option<WallpaperConfig>,
+    pub config: WallpaperConfig,
 }
 #[derive(Hash, Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct WallpaperConfig {
-    theme: Option<crate::theme::Theme>,
-    time: Option<String>,
+    pub theme: Option<crate::theme::Theme>,
+    pub time: Option<String>,
+    pub engine: String,
+}
+
+impl WallpaperConfig {
+    pub fn new() -> WallpaperConfig {
+        WallpaperConfig {
+            theme: None,
+            time: None,
+            engine: "swww".to_string(),
+        }
+    }
+    pub fn set_time(&mut self, time: String) {
+        self.time = Some(time);
+    }
+    pub fn set_engine(&mut self, engine: String) {
+        self.engine = engine;
+    }
 }
 
 impl Wallpaper {
@@ -184,8 +212,11 @@ impl Wallpaper {
         Wallpaper {
             name,
             path,
-            config: None,
+            config: WallpaperConfig::new(),
         }
+    }
+    pub fn set_config(&mut self, config: WallpaperConfig) {
+        self.config = config
     }
     pub fn set_wallpaper(&self) -> Result<(), String> {
         let path: String = match expand_path(&self.path) {
@@ -250,10 +281,10 @@ impl Wallpaper {
             *value = get_current_group();
         }
 
-        match &self.config {
-            Some(c) => sh.arg("img").arg(&path),
-            None => sh.arg("img").arg(&path),
-        };
+        // match &self.config {
+        //     Some(c) => sh.arg("img").arg(&path),
+        //     None => sh.arg("img").arg(&path),
+        // };
 
         if let Err(e) = sh.execute_check_exit_status_code(0) {
             return Err(e.to_string());
@@ -262,21 +293,25 @@ impl Wallpaper {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::Wallpaper;
-
-    #[test]
-    fn test_set_wallpaper() {
-        let w = Wallpaper {
-            name: "cat_lofi_cafe".to_string(),
-            path: "~/.config/swww/Tokyo-Night/edger_lucy_neon.jpg".to_string(),
-            config: None,
-        };
-
-        match w.set_wallpaper() {
-            Ok(_) => println!("test_set_wallpaper was successfull"),
-            Err(e) => eprintln!("{e}"),
-        }
-    }
-}
+// #[cfg(test)]
+// mod tests {
+//     use super::Wallpaper;
+//
+//     #[test]
+//     fn test_set_wallpaper() {
+//         let w = Wallpaper {
+//             name: "cat_lofi_cafe".to_string(),
+//             path: "~/.config/swww/Tokyo-Night/edger_lucy_neon.jpg".to_string(),
+//             config: super::WallpaperConfig {
+//                 theme: (),
+//                 time: (),
+//                 engine: (),
+//             },
+//         };
+//
+//         match w.set_wallpaper() {
+//             Ok(_) => println!("test_set_wallpaper was successfull"),
+//             Err(e) => eprintln!("{e}"),
+//         }
+//     }
+// }

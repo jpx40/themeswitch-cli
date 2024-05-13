@@ -44,6 +44,9 @@ value = _{
   | boolean
 }
 
+
+
+config = {"config" ~ "{" ~ "}"}
 identifier = { (ASCII_ALPHANUMERIC | "_" | "-")+ }
 
 literal            = @{ "'" ~ (!"'" ~ ANY)* ~ "'" }
