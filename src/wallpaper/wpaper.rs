@@ -21,13 +21,11 @@ pub enum Paper {
     WallpaperList(WallpaperList),
 }
 
-// pub fn check_paper(paper: Paper) {
-//     if let Paper::Wpaper(wpaper) = paper {
-//         if let Some(path) = &wpaper.path {
-//
-//        }
-//         } else if let Some(wallpaper) = &wpaper.wallpaper {
-//             let wallpaper = wallpaper.to_vec();
-//         }
-//     }
-// }
+pub fn check_paper(paper: Paper) {
+    match paper {
+        Paper::Group(group) => {}
+        Paper::Wallpaper(wallpaper) => {}
+        Paper::WallpaperList(wallpaperlist) => {}
+        Paper::Wpaper(w) => {}
+    }
+}

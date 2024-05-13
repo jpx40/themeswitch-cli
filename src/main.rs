@@ -37,7 +37,21 @@ fn main() {
 
             if let Paper::Wpaper(w) = wall {
                 let path = w.path.clone().unwrap();
-                println!("{:?}", path);
+                let engine = w.engine.clone().unwrap();
+                println!("Wallpaper");
+                println!("Engine: {:?}", engine);
+                println!("Path: {:?}", path);
+            }
+        }
+        let s = v.script.clone();
+        println!("\n");
+        println!("\n");
+        println!("Script");
+        for script in s.iter() {
+            for script in script.iter().cloned() {
+                for a in script.arg.iter() {
+                    println!("Arg: {:?}", a);
+                }
             }
         }
     }

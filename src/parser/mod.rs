@@ -268,6 +268,7 @@ pub fn parse_conf(path: &str) -> Result<(), String> {
 
                     for line in line.into_inner() {
                         if Rule::string == line.as_rule() {
+                            let line = line.into_inner();
                             engine = line.as_str().to_string();
                         }
                     }
