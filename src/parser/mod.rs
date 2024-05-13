@@ -263,6 +263,7 @@ pub fn parse_conf(path: &str) -> Result<(), String> {
     }
     fn get_wallpaper(wallpaper: Pairs<Rule>) -> Wpaper {
         let mut w = Wpaper::new();
+        let mut map: Option<HashMap<String, String>> = None;
         //   println!("{:#?}", wallpaper);
         for line in wallpaper {
             match line.as_rule() {
@@ -307,6 +308,34 @@ pub fn parse_conf(path: &str) -> Result<(), String> {
                     }
                     if !engine.is_empty() {
                         w.set_engine(engine)
+                    }
+                }
+                Rule::config => {
+                    let line = line.into_inner().next().unwrap();
+
+                    if line.as_rule() == Rule::object {
+                        for line in line.into_inner() {
+                            if line.as_rule() == Rule::o_pair {
+                                let mut key = String::new();
+                                let mut value = String::new();
+                                for line in line.into_inner() {
+                                    match line.as_rule() {
+                                        Rule::key => {
+                                            key = line.into_inner().as_str().to_string();
+                                        }
+                                        Rule::string => {
+                                            value = line.into_inner().as_str().to_string();
+                                        }
+                                        _ => {}
+                                    }
+                                }
+                                if let Some(m) = map.as_mut() {
+                                    m.insert(key, value);
+                                } else if !key.is_empty() && !value.is_empty() {
+                                    map = Some(HashMap::from([(key, value)]));
+                                }
+                            }
+                        }
                     }
                 }
                 _ => {}
