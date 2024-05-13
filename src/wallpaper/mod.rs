@@ -63,7 +63,7 @@ impl WallpaperList {
         group.path = Some(path_str);
         group.config = self.config.clone();
         if let Err(e) = group.fill_wallpaper() {
-            panic! {"{e}"}
+            //  panic! {"{e}"}
         }
         self.list.push(group);
     }
