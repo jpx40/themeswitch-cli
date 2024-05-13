@@ -55,6 +55,18 @@ impl WallpaperList {
             config: WallpaperConfig::new(),
         }
     }
+    pub fn add_group(&mut self, group: Group) {}
+    pub fn add_group_from_path(&mut self, path_str: String) {
+        let path = Utf8Path::new(&path_str);
+        let name = path.file_name().unwrap().to_string_lossy().to_string();
+        let mut group = Group::new(name);
+        group.path = Some(path_str);
+        group.config = self.config.clone();
+        if let Err(e) = group.fill_wallpaper() {
+            panic! {"{e}"}
+        }
+        self.list.push(group);
+    }
     pub fn set_config(&mut self, config: WallpaperConfig) {
         self.config = config;
     }

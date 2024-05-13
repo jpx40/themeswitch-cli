@@ -67,6 +67,10 @@ pub fn check_paper(paper: Paper) -> Result<Paper, String> {
                                     group.path = Some(path_str);
                                     group.fill_wallpaper()?;
                                     return Ok(Paper::Group(group));
+                                } else if entry.path().is_dir() {
+                                    wallpaper_list.add_group_from_path(
+                                        entry.path().to_string_lossy().to_string(),
+                                    );
                                 }
                             } else if let Err(e) = entry {
                                 return Err(e.to_string());
