@@ -97,22 +97,37 @@ pub fn check_paper(paper: Paper) -> Result<Paper, String> {
                         let file_name = path.file_name().unwrap().to_string_lossy().to_string();
                         let name = file_name.split('.').next().unwrap().to_string();
 
-                        let mut wp = Wallpaper::new(name, path_str);
-                        if let Some(config) = wallpaper.config {
-                            for (k, v) in config.iter() {
-                                match k.as_str() {
-                                    "time" => wp.config.set_time(v.to_string()),
-                                    "engine" => wp.config.set_engine(v.to_string()),
-                                    "theme" => {}
-                                    "timer" => wp.config.set_time(v.to_string()),
-                                    _ => {}
+                        let extension = if let Some(extension) = path.extension() {
+                            extension
+                        } else {
+                            return Err("wallpaper has no extension".to_string());
+                        };
+
+                        let check = match extension {
+                            "jpg" | "png" | "jpeg" | "webp" | "gif | .jpg" | ".png" | ".jpeg"
+                            | ".webp" | ".gif" => true,
+                            _ => false,
+                        };
+                        if check {
+                            let mut wp = Wallpaper::new(name, path_str);
+                            if let Some(config) = wallpaper.config {
+                                for (k, v) in config.iter() {
+                                    match k.as_str() {
+                                        "time" => wp.config.set_time(v.to_string()),
+                                        "engine" => wp.config.set_engine(v.to_string()),
+                                        "theme" => {}
+                                        "timer" => wp.config.set_time(v.to_string()),
+                                        _ => {}
+                                    }
                                 }
                             }
+                            if let Some(engine) = wallpaper.engine {
+                                wp.config.set_engine(engine)
+                            }
+                            return Ok(Paper::Wallpaper(wp));
+                        } else {
+                            return Err("extension of wallpaper not supported".to_string());
                         }
-                        if let Some(engine) = wallpaper.engine {
-                            wp.config.set_engine(engine)
-                        }
-                        return Ok(Paper::Wallpaper(wp));
                     } else {
                         return Err("path of wallpaper not found".to_string());
                     }
