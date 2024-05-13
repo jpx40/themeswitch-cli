@@ -311,8 +311,11 @@ pub fn parse_conf(path: &str) -> Result<(), String> {
                     }
                 }
                 Rule::config => {
-                    let line = line.into_inner().next().unwrap();
-
+                    let line = if let Some(line) = line.into_inner().next() {
+                        line
+                    } else {
+                        panic!("config is empty")
+                    };
                     if line.as_rule() == Rule::object {
                         for line in line.into_inner() {
                             if line.as_rule() == Rule::o_pair {
