@@ -1,7 +1,9 @@
 use crate::store::PROFILE;
-use crate::store::*;
 use crate::util::path::expand_path;
 use crate::{parser, template, util};
+use crate::{store::*, wallpaper};
+
+use crate::wallpaper::wpaper::check_paper;
 use camino::Utf8Path;
 use itertools::{cloned, ProcessResults};
 use pest::iterators::{Pair, Pairs};
@@ -14,7 +16,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::collections::VecDeque;
 use std::hash::Hash;
-use std::path::Path;
+use std::path::{self, Path};
 use std::process::Command;
 use std::string::String;
 use std::sync::{Arc, Mutex};
@@ -48,13 +50,47 @@ enum CONFValue<'a> {
     Out(&'a str),
     Null,
 }
-
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Wpaper {
-    pub egine: Option<String>,
+    pub engine: Option<String>,
     pub path: Option<String>,
     pub wallpaper: Option<Vec<String>>,
+    pub config: Option<HashMap<String, String>>,
 }
 
+pub struct File {
+    pub path: String,
+
+    pub import: Vec<Import>,
+
+    pub profiles: HashMap<String, Profile>,
+
+    pub global_variables: HashMap<String, Variable>,
+}
+
+impl Wpaper {
+    fn new() -> Self {
+        Wpaper {
+            engine: None,
+            path: None,
+            wallpaper: None,
+            config: None,
+        }
+    }
+    fn set_path(&mut self, path: String) {
+        self.path = Some(path)
+    }
+    pub fn set_config(&mut self, config: HashMap<String, String>) {
+        self.config = Some(config);
+    }
+
+    fn set_engine(&mut self, engine: String) {
+        self.engine = Some(engine);
+    }
+    fn set_wallpaper(&mut self, wallpaper: Vec<String>) {
+        self.wallpaper = Some(wallpaper);
+    }
+}
 //
 // pub fn parse_conf(path: &str) -> Result<Conf, String> {
 //     let mut ast = vec![];
@@ -69,6 +105,7 @@ pub struct Profile {
     pub script: Option<Vec<Script>>,
     pub template: Option<Vec<Template>>,
     pub color: Option<Color>,
+    pub wallpaper: Option<wallpaper::wpaper::Paper>,
 }
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
 pub struct Variable {
@@ -116,7 +153,7 @@ pub struct Exec {
     pub params: Option<Vec<HashMap<String, String>>>,
 }
 
-pub fn parse_conf(path: &str) {
+pub fn parse_conf(path: &str) -> Result<(), String> {
     let unparsed_file = std::fs::read_to_string(path).expect("cannot read file");
 
     let file = CONFParser::parse(Rule::file, &unparsed_file)
@@ -128,7 +165,12 @@ pub fn parse_conf(path: &str) {
     let mut current_section_name = "";
 
     fn get_path(path: &str) -> &str {
-        path.split('=').collect::<Vec<&str>>()[1]
+        let mut path = path.split('=').collect::<Vec<&str>>()[1];
+        if path.contains('\"') {
+            path = path.trim_matches('\"');
+        }
+
+        path
     }
 
     fn get_args(args: Pairs<Rule>) -> Vec<String> {
@@ -219,6 +261,91 @@ pub fn parse_conf(path: &str) {
         }
         Variable { name, value }
     }
+    fn get_wallpaper(wallpaper: Pairs<Rule>) -> Wpaper {
+        let mut w = Wpaper::new();
+        let mut map: Option<HashMap<String, String>> = None;
+        //   println!("{:#?}", wallpaper);
+        for line in wallpaper {
+            match line.as_rule() {
+                Rule::path => {
+                    let path = get_path(line.as_str());
+
+                    let path = expand_path(path).unwrap_or_else(|err| panic!("{err}"));
+                    // let path = if let Some(path) = Utf8Path::new(path)
+                    //     .canonicalize()
+                    //     .unwrap_or_else(|err| panic!("{err}"))
+                    //     .to_str()
+                    // {
+                    //     path.to_string()
+                    // } else {
+                    //     panic!("not a valid path")
+                    // };
+
+                    w.set_path(path.to_string());
+                }
+                Rule::array => {
+                    let mut array: Vec<String> = Vec::new();
+                    for line in line.into_inner() {
+                        let mut s = String::new();
+                        if line.as_rule() == Rule::string {
+                            s = line.as_str().to_string();
+                        }
+                        if !s.is_empty() {
+                            array.push(s);
+                        }
+                    }
+
+                    w.set_wallpaper(array);
+                }
+                Rule::engine => {
+                    let mut engine = String::new();
+
+                    for line in line.into_inner() {
+                        if Rule::string == line.as_rule() {
+                            let line = line.into_inner();
+                            engine = line.as_str().to_string();
+                        }
+                    }
+                    if !engine.is_empty() {
+                        w.set_engine(engine)
+                    }
+                }
+                Rule::config => {
+                    let line = if let Some(line) = line.into_inner().next() {
+                        line
+                    } else {
+                        panic!("config is empty")
+                    };
+                    if line.as_rule() == Rule::object {
+                        for line in line.into_inner() {
+                            if line.as_rule() == Rule::o_pair {
+                                let mut key = String::new();
+                                let mut value = String::new();
+                                for line in line.into_inner() {
+                                    match line.as_rule() {
+                                        Rule::key => {
+                                            key = line.into_inner().as_str().to_string();
+                                        }
+                                        Rule::string => {
+                                            value = line.into_inner().as_str().to_string();
+                                        }
+                                        _ => {}
+                                    }
+                                }
+                                if let Some(m) = map.as_mut() {
+                                    m.insert(key, value);
+                                } else if !key.is_empty() && !value.is_empty() {
+                                    map = Some(HashMap::from([(key, value)]));
+                                }
+                            }
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+        w
+    }
 
     //
     let mut imports: Vec<Import> = Vec::new();
@@ -274,6 +401,8 @@ pub fn parse_conf(path: &str) {
                                 }
                                 Rule::path => {
                                     let path = get_path(line.as_str());
+                                    let path =
+                                        expand_path(path).unwrap_or_else(|err| panic!("{err}"));
                                     script.set_path(path.to_string());
                                 }
                                 Rule::param => {
@@ -322,6 +451,11 @@ pub fn parse_conf(path: &str) {
                             }
                         }
                         profile.add_exec(exec);
+                    }
+                    Rule::wallpaper => {
+                        let wallpaper = get_wallpaper(line.into_inner());
+
+                        profile.set_wallpaper(wallpaper);
                     }
 
                     Rule::template => {
@@ -405,16 +539,7 @@ pub fn parse_conf(path: &str) {
     if let Ok(mut store) = IMPORT.lock() {
         store.push(imports.clone());
     }
-}
-
-pub struct File {
-    pub path: String,
-
-    pub import: Vec<Import>,
-
-    pub profiles: HashMap<String, Profile>,
-
-    pub global_variables: HashMap<String, Variable>,
+    Ok(())
 }
 
 impl File {
@@ -516,8 +641,19 @@ impl Profile {
             script: None,
             template: None,
             color: None,
+            wallpaper: None,
         }
     }
+
+    pub fn set_wallpaper(&mut self, wallpaper: Wpaper) {
+        let wallpaper = wallpaper::wpaper::Paper::Wpaper(wallpaper);
+        let wallpaper = match check_paper(wallpaper) {
+            Ok(w) => w,
+            Err(e) => panic!("{e}"),
+        };
+        self.wallpaper = Some(wallpaper);
+    }
+
     pub fn set_name(&mut self, name: String) {
         self.name = name;
     }
