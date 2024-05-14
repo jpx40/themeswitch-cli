@@ -95,7 +95,11 @@ pub fn check_paper(paper: Paper) -> Result<Paper, String> {
                                             match k.as_str() {
                                                 "time" => group.config.set_time(v.to_string()),
                                                 "engine" => group.config.set_engine(v.to_string()),
-                                                "theme" => {}
+                                                "transition" => {
+                                                    group.config.set_transition(v.to_string())
+                                                }
+                                                "mode" => group.config.set_mode(v.to_string()),
+                                                "theme" => group.config.set_theme(v.to_string()),
                                                 "timer" => group.config.set_time(v.to_string()),
                                                 _ => {}
                                             }
@@ -124,7 +128,11 @@ pub fn check_paper(paper: Paper) -> Result<Paper, String> {
                                 match k.as_str() {
                                     "time" => wallpaper_list.config.set_time(v.to_string()),
                                     "engine" => wallpaper_list.config.set_engine(v.to_string()),
-                                    "theme" => {}
+                                    "transition" => {
+                                        wallpaper_list.config.set_transition(v.to_string())
+                                    }
+                                    "mode" => wallpaper_list.config.set_mode(v.to_string()),
+                                    "theme" => wallpaper_list.config.set_theme(v.to_string()),
                                     "timer" => wallpaper_list.config.set_time(v.to_string()),
                                     _ => {}
                                 }
@@ -157,8 +165,10 @@ pub fn check_paper(paper: Paper) -> Result<Paper, String> {
                                     match k.as_str() {
                                         "time" => wp.config.set_time(v.to_string()),
                                         "engine" => wp.config.set_engine(v.to_string()),
-                                        "theme" => {}
                                         "timer" => wp.config.set_time(v.to_string()),
+                                        "transition" => wp.config.set_transition(v.to_string()),
+                                        "mode" => wp.config.set_mode(v.to_string()),
+                                        "theme" => wp.config.set_theme(v.to_string()),
                                         _ => {}
                                     }
                                 }
@@ -182,3 +192,5 @@ pub fn check_paper(paper: Paper) -> Result<Paper, String> {
         }
     }
 }
+
+fn parse_config() {}

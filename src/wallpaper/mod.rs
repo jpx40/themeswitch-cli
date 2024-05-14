@@ -206,6 +206,8 @@ pub struct WallpaperConfig {
     pub theme: Option<crate::theme::Theme>,
     pub time: Option<String>,
     pub engine: String,
+    pub transition: Option<String>,
+    pub mode: Option<String>,
 }
 
 impl WallpaperConfig {
@@ -214,6 +216,8 @@ impl WallpaperConfig {
             theme: None,
             time: None,
             engine: "swww".to_string(),
+            transition: None,
+            mode: None,
         }
     }
     pub fn set_time(&mut self, time: String) {
@@ -221,6 +225,13 @@ impl WallpaperConfig {
     }
     pub fn set_engine(&mut self, engine: String) {
         self.engine = engine;
+    }
+    pub fn set_theme(&mut self, theme: String) {}
+    pub fn set_transition(&mut self, transition: String) {
+        self.transition = Some(transition);
+    }
+    pub fn set_mode(&mut self, mode: String) {
+        self.mode = Some(mode);
     }
 }
 
