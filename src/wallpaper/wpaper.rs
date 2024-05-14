@@ -98,9 +98,33 @@ pub fn check_paper(paper: Paper) -> Result<Paper, String> {
                                                 "transition" => {
                                                     group.config.set_transition(v.to_string())
                                                 }
+                                                "transition-step" => {
+                                                    let step = v.parse::<u32>().unwrap_or(0);
+                                                    group.config.set_transition_step(step)
+                                                }
+                                                "step" => {
+                                                    let step = v.parse::<u32>().unwrap_or(0);
+                                                    group.config.set_transition_step(step)
+                                                }
+                                                "fps" => {
+                                                    let fps = v.parse::<u32>().unwrap_or(0);
+                                                    group.config.set_transition_fps(fps)
+                                                }
+
+                                                "transition-type" => {
+                                                    group.config.set_transition_type(v.to_string())
+                                                }
+                                                "type" => {
+                                                    group.config.set_transition_type(v.to_string())
+                                                }
+
                                                 "mode" => group.config.set_mode(v.to_string()),
                                                 "theme" => group.config.set_theme(v.to_string()),
                                                 "timer" => group.config.set_time(v.to_string()),
+                                                "transition-fps" => {
+                                                    let fps = v.parse::<u32>().unwrap_or(0);
+                                                    group.config.set_transition_fps(fps)
+                                                }
                                                 _ => {}
                                             }
                                         }
@@ -134,6 +158,30 @@ pub fn check_paper(paper: Paper) -> Result<Paper, String> {
                                     "mode" => wallpaper_list.config.set_mode(v.to_string()),
                                     "theme" => wallpaper_list.config.set_theme(v.to_string()),
                                     "timer" => wallpaper_list.config.set_time(v.to_string()),
+                                    "transition-step" => {
+                                        let step = v.parse::<u32>().unwrap_or(0);
+                                        wallpaper_list.config.set_transition_step(step)
+                                    }
+                                    "step" => {
+                                        let step = v.parse::<u32>().unwrap_or(0);
+                                        wallpaper_list.config.set_transition_step(step)
+                                    }
+                                    "fps" => {
+                                        let fps = v.parse::<u32>().unwrap_or(0);
+                                        wallpaper_list.config.set_transition_fps(fps)
+                                    }
+
+                                    "transition-type" => {
+                                        wallpaper_list.config.set_transition_type(v.to_string())
+                                    }
+                                    "type" => {
+                                        wallpaper_list.config.set_transition_type(v.to_string())
+                                    }
+                                    "transition-fps" => {
+                                        let fps = v.parse::<u32>().unwrap_or(0);
+                                        wallpaper_list.config.set_transition_fps(fps)
+                                    }
+
                                     _ => {}
                                 }
                             }
@@ -169,6 +217,28 @@ pub fn check_paper(paper: Paper) -> Result<Paper, String> {
                                         "transition" => wp.config.set_transition(v.to_string()),
                                         "mode" => wp.config.set_mode(v.to_string()),
                                         "theme" => wp.config.set_theme(v.to_string()),
+                                        "transition-step" => {
+                                            let step = v.parse::<u32>().unwrap_or(0);
+                                            wp.config.set_transition_step(step)
+                                        }
+                                        "step" => {
+                                            let step = v.parse::<u32>().unwrap_or(0);
+                                            wp.config.set_transition_step(step)
+                                        }
+                                        "fps" => {
+                                            let fps = v.parse::<u32>().unwrap_or(0);
+                                            wp.config.set_transition_fps(fps)
+                                        }
+                                        "transition-fps" => {
+                                            let fps = v.parse::<u32>().unwrap_or(0);
+                                            wp.config.set_transition_fps(fps)
+                                        }
+
+                                        "transition-type" => {
+                                            wp.config.set_transition_type(v.to_string())
+                                        }
+                                        "type" => wp.config.set_transition_type(v.to_string()),
+
                                         _ => {}
                                     }
                                 }

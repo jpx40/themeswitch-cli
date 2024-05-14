@@ -208,6 +208,9 @@ pub struct WallpaperConfig {
     pub engine: String,
     pub transition: Option<String>,
     pub mode: Option<String>,
+    pub transition_type: Option<String>,
+    pub transition_fps: Option<u32>,
+    pub transition_step: Option<u32>,
 }
 
 impl WallpaperConfig {
@@ -218,13 +221,25 @@ impl WallpaperConfig {
             engine: "swww".to_string(),
             transition: None,
             mode: None,
+            transition_type: None,
+            transition_fps: None,
+            transition_step: None,
         }
+    }
+    pub fn set_transition_type(&mut self, transition_type: String) {
+        self.transition_type = Some(transition_type);
     }
     pub fn set_time(&mut self, time: String) {
         self.time = Some(time);
     }
     pub fn set_engine(&mut self, engine: String) {
         self.engine = engine;
+    }
+    pub fn set_transition_fps(&mut self, fps: u32) {
+        self.transition_fps = Some(fps);
+    }
+    pub fn set_transition_step(&mut self, step: u32) {
+        self.transition_step = Some(step);
     }
     pub fn set_theme(&mut self, theme: String) {}
     pub fn set_transition(&mut self, transition: String) {
