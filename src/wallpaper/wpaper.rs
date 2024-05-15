@@ -96,18 +96,19 @@ pub fn check_paper(paper: Paper) -> Result<Paper, String> {
                                                 "time" => group.config.set_time(v.to_string()),
                                                 "engine" => group.config.set_engine(v.to_string()),
                                                 "transition" => {
+                                                    let v = v.parse::<u32>().unwrap_or(20);
                                                     group.config.set_transition(v.to_string())
                                                 }
                                                 "transition-step" => {
-                                                    let step = v.parse::<u32>().unwrap_or(0);
+                                                    let step = v.parse::<u32>().unwrap_or(20);
                                                     group.config.set_transition_step(step)
                                                 }
                                                 "step" => {
-                                                    let step = v.parse::<u32>().unwrap_or(0);
+                                                    let step = v.parse::<u32>().unwrap_or(20);
                                                     group.config.set_transition_step(step)
                                                 }
                                                 "fps" => {
-                                                    let fps = v.parse::<u32>().unwrap_or(0);
+                                                    let fps = v.parse::<u32>().unwrap_or(30);
                                                     group.config.set_transition_fps(fps)
                                                 }
 
@@ -122,7 +123,7 @@ pub fn check_paper(paper: Paper) -> Result<Paper, String> {
                                                 "theme" => group.config.set_theme(v.to_string()),
                                                 "timer" => group.config.set_time(v.to_string()),
                                                 "transition-fps" => {
-                                                    let fps = v.parse::<u32>().unwrap_or(0);
+                                                    let fps = v.parse::<u32>().unwrap_or(30);
                                                     group.config.set_transition_fps(fps)
                                                 }
                                                 _ => {}

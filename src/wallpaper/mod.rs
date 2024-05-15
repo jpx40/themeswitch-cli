@@ -309,7 +309,7 @@ impl Wallpaper {
         // if !Path::new(&path).exists() && !Path::new(&path).is_file() {
         //     return Err("File not found".to_string());
         // }
-        let mut sh = Command::new("swww");
+
         //https://stackoverflow.com/questions/27791532/how-do-i-create-a-global-mutable-singleton
         if let Ok(mut value) = ACTIVE_WALLPAPER.lock() {
             *value = self.clone()
@@ -336,8 +336,30 @@ impl Wallpaper {
         //     None => sh.arg("img").arg(&path),
         // };
 
-        if let Err(e) = sh.execute_check_exit_status_code(0) {
-            return Err(e.to_string());
+        if self.config.engine == "swww" {
+            let mut sh = Command::new("swww");
+            if let Some(transition) = &self.config.transition {
+                sh.args(["--transition-step", transition]);
+            } else if let Some(transition_step) = &self.config.transition_step {
+                sh.args(["--transition-step", transition_step.to_string().as_str()]);
+            }
+            if let Some(transition_fps) = &self.config.transition_fps {
+                sh.args(["--transition-fps", transition_fps.to_string().as_str()]);
+            }
+
+            if let Some(transition_type) = &self.config.transition_type {
+                sh.args(["--transition-type", transition_type]);
+            }
+
+            sh.args(["img", &path]);
+
+            if let Err(e) = sh.execute_check_exit_status_code(0) {
+                return Err(e.to_string());
+            }
+
+            if let Err(e) = sh.execute_check_exit_status_code(0) {
+                return Err(e.to_string());
+            }
         }
         Ok(())
     }
