@@ -8,6 +8,7 @@ use globset;
 use globset::{Glob, GlobSetBuilder};
 use itertools::Itertools;
 use lazy_static::{lazy_static, LazyStatic};
+use ron::extensions;
 use rustix::path::Arg;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -120,27 +121,33 @@ impl Group {
             if path.is_dir() {
                 let walker = walkdir::WalkDir::new(path).into_iter();
                 for entry in walker.filter_entry(|e| !is_hidden(e) || !is_dir(e)) {
-                    if let Ok(entry) = entry {
+                    if entry.is_ok() {
+                        let entry = entry.unwrap();
                         if entry.path().is_file() && entry.path().extension().is_some() {
                             let file_name = entry.file_name().to_string_lossy().to_string();
                             let path: String = entry.path().to_string_lossy().to_string();
 
-                            let extension = entry.path().extension().unwrap().to_str().unwrap();
-                            let prefix = file_prefix(entry.path());
+                            let extension = entry.path().extension();
 
-                            match extension {
-                                "jpg" | "png" | "jpeg" | "webp" | "gif | .jpg" | ".png"
-                                | ".jpeg" | ".webp" | ".gif" => {
-                                    let path = util::path::expand_path(&path)
-                                        .unwrap_or_else(|err| panic!("{err}"));
-                                    if let Some(prefix) = prefix {
-                                        let mut wp = Wallpaper::new(prefix, path);
-                                        wp.set_config(self.config.clone());
+                            if let Some(extension) = extension {
+                                if let Some(extension) = extension.to_str() {
+                                    let prefix = file_prefix(entry.path());
 
-                                        self.list.push(wp);
+                                    match extension {
+                                        "jpg" | "png" | "jpeg" | "webp" | "gif | .jpg" | ".png"
+                                        | ".jpeg" | ".webp" | ".gif" => {
+                                            let path = util::path::expand_path(&path)
+                                                .unwrap_or_else(|err| panic!("{err}"));
+                                            if let Some(prefix) = prefix {
+                                                let mut wp = Wallpaper::new(prefix, path);
+                                                wp.set_config(self.config.clone());
+
+                                                self.list.push(wp);
+                                            }
+                                        }
+                                        _ => {}
                                     }
                                 }
-                                _ => {}
                             }
                         }
                     }

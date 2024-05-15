@@ -2,6 +2,7 @@ use serde::Deserialize;
 mod api;
 mod cli;
 mod conf;
+mod exec;
 mod parser;
 mod store;
 mod template;

@@ -176,10 +176,14 @@ pub fn parse_conf(path: &str) -> Result<(), String> {
     fn get_args(args: Pairs<Rule>) -> Vec<String> {
         let mut arg: Vec<String> = Vec::new();
         for line in args {
+            let line_nr = line.line_col();
             if line.as_rule() == Rule::array {
+                let line_nr = line.line_col();
                 for line in line.into_inner() {
                     if line.as_rule() == Rule::string {
+                        let line_nr = line.line_col();
                         for line in line.into_inner() {
+                            let line_nr = line.line_col();
                             if !matches!(line.as_str(), "[]") {
                                 arg.push(line.as_str().to_string());
                             }
@@ -202,22 +206,29 @@ pub fn parse_conf(path: &str) -> Result<(), String> {
         for line in params {
             match line.as_rule() {
                 Rule::path => {
+                    let line_nr = line.line_col();
                     let path_temp =
                         expand_path(get_path(line.as_str())).unwrap_or_else(|err| panic!("{err}"));
 
                     path = Some(path_temp)
                 }
                 Rule::object => {
+                    let line_nr = line.line_col();
                     for line in line.into_inner() {
+                        let line_nr = line.line_col();
                         if line.as_rule() == Rule::o_pair {
+                            let line_nr = line.line_col();
                             let mut key = String::new();
                             let mut value = String::new();
                             for line in line.into_inner() {
+                                let line_nr = line.line_col();
                                 match line.as_rule() {
                                     Rule::key => {
+                                        let line_nr = line.line_col();
                                         key = line.into_inner().as_str().to_string();
                                     }
                                     Rule::string => {
+                                        let line_nr = line.line_col();
                                         value = line.into_inner().as_str().to_string();
                                     }
                                     _ => {}
@@ -251,11 +262,15 @@ pub fn parse_conf(path: &str) -> Result<(), String> {
         let mut name = String::new();
         let mut value = String::new();
         for line in rules {
+            let line_nr = line.line_col();
             match line.as_rule() {
                 Rule::var => {
+                    let line_nr = line.line_col();
                     name = line.as_str().to_string();
                 }
-                Rule::string => {}
+                Rule::string => {
+                    let line_nr = line.line_col();
+                }
                 _ => {}
             };
         }
@@ -266,8 +281,10 @@ pub fn parse_conf(path: &str) -> Result<(), String> {
         let mut map: Option<HashMap<String, String>> = None;
         //   println!("{:#?}", wallpaper);
         for line in wallpaper {
+            let line_nr = line.line_col();
             match line.as_rule() {
                 Rule::path => {
+                    let line_nr = line.line_col();
                     let path = get_path(line.as_str());
 
                     let path = expand_path(path).unwrap_or_else(|err| panic!("{err}"));
@@ -284,11 +301,15 @@ pub fn parse_conf(path: &str) -> Result<(), String> {
                     w.set_path(path.to_string());
                 }
                 Rule::array => {
+                    let line_nr = line.line_col();
                     let mut array: Vec<String> = Vec::new();
                     for line in line.into_inner() {
+                        let line_nr = line.line_col();
                         let mut s = String::new();
                         if line.as_rule() == Rule::string {
-                            s = line.as_str().to_string();
+                            let line_nr = line.line_col();
+
+                            s = line.into_inner().as_str().to_string();
                         }
                         if !s.is_empty() {
                             array.push(s);
@@ -298,10 +319,13 @@ pub fn parse_conf(path: &str) -> Result<(), String> {
                     w.set_wallpaper(array);
                 }
                 Rule::engine => {
+                    let line_nr = line.line_col();
                     let mut engine = String::new();
 
                     for line in line.into_inner() {
+                        let line_nr = line.line_col();
                         if Rule::string == line.as_rule() {
+                            let line_nr = line.line_col();
                             let line = line.into_inner();
                             engine = line.as_str().to_string();
                         }
@@ -311,22 +335,29 @@ pub fn parse_conf(path: &str) -> Result<(), String> {
                     }
                 }
                 Rule::config => {
+                    let line_nr = line.line_col();
                     let line = if let Some(line) = line.into_inner().next() {
                         line
                     } else {
                         panic!("config is empty")
                     };
                     if line.as_rule() == Rule::object {
+                        let line_nr = line.line_col();
                         for line in line.into_inner() {
+                            let line_nr = line.line_col();
                             if line.as_rule() == Rule::o_pair {
+                                let line_nr = line.line_col();
                                 let mut key = String::new();
                                 let mut value = String::new();
                                 for line in line.into_inner() {
+                                    let line_nr = line.line_col();
                                     match line.as_rule() {
                                         Rule::key => {
+                                            let line_nr = line.line_col();
                                             key = line.into_inner().as_str().to_string();
                                         }
                                         Rule::string => {
+                                            let line_nr = line.line_col();
                                             value = line.into_inner().as_str().to_string();
                                         }
                                         _ => {}
@@ -373,7 +404,9 @@ pub fn parse_conf(path: &str) -> Result<(), String> {
     fn get_imports(import: Pairs<Rule>) -> String {
         let mut import_out = String::new();
         for line in import {
+            let line_nr = line.line_col();
             if line.as_rule() == Rule::key {
+                let line_nr = line.line_col();
                 import_out = line.as_str().to_string();
             }
         }
@@ -381,6 +414,7 @@ pub fn parse_conf(path: &str) -> Result<(), String> {
     }
     file.into_inner().for_each(|line| match line.as_rule() {
         Rule::profile => {
+            let line_nr = line.line_col();
             let mut profile = Profile::new();
             for line in line.into_inner() {
                 match line.as_rule() {
@@ -425,18 +459,22 @@ pub fn parse_conf(path: &str) -> Result<(), String> {
                         profile.add_script(script);
                     }
                     Rule::exec => {
+                        let line_nr = line.line_col();
                         let mut exec = Exec::new();
                         for line in line.into_inner() {
+                            let line_nr = line.line_col();
                             match line.as_rule() {
                                 Rule::cmd => exec.set_cmd(get_cmd(line.as_str()).to_string()),
                                 Rule::arg => {
                                     exec.add_args(get_args(line.into_inner()));
                                 }
                                 Rule::path => {
+                                    let line_nr = line.line_col();
                                     let path = get_path(line.as_str());
                                     exec.set_path(path.to_string());
                                 }
                                 Rule::param => {
+                                    let line_nr = line.line_col();
                                     match get_params(line.into_inner())
                                         .unwrap_or_else(|err| panic!("{err}"))
                                     {
@@ -453,23 +491,28 @@ pub fn parse_conf(path: &str) -> Result<(), String> {
                         profile.add_exec(exec);
                     }
                     Rule::wallpaper => {
+                        let line_nr = line.line_col();
                         let wallpaper = get_wallpaper(line.into_inner());
 
                         profile.set_wallpaper(wallpaper);
                     }
 
                     Rule::template => {
+                        let line_nr = line.line_col();
                         let mut template = Template::new();
                         for line in line.into_inner() {
                             match line.as_rule() {
                                 Rule::arg => {
+                                    let line_nr = line.line_col();
                                     template.add_args(get_args(line.into_inner()));
                                 }
                                 Rule::path => {
+                                    let line_nr = line.line_col();
                                     let path = get_path(line.as_str());
                                     template.set_path(path.to_string());
                                 }
                                 Rule::param => {
+                                    let line_nr = line.line_col();
                                     match get_params(line.into_inner())
                                         .unwrap_or_else(|err| panic!("{err}"))
                                     {
@@ -483,10 +526,13 @@ pub fn parse_conf(path: &str) -> Result<(), String> {
                                         ParamsResult::Params(map) => template.add_param(map),
                                     }
                                 }
-                                Rule::color => template.add_color(
-                                    get_color(line.into_inner())
-                                        .unwrap_or_else(|err| panic!("{err}")),
-                                ),
+                                Rule::color => {
+                                    let line_nr = line.line_col();
+                                    template.add_color(
+                                        get_color(line.into_inner())
+                                            .unwrap_or_else(|err| panic!("{err}")),
+                                    )
+                                }
                                 _ => (),
                             }
                         }
@@ -503,10 +549,12 @@ pub fn parse_conf(path: &str) -> Result<(), String> {
             profiles.push(profile);
         }
         Rule::import => {
+            let line_nr = line.line_col();
             let import = Import::new(get_imports(line.into_inner()));
             imports.push(import)
         }
         Rule::variable => {
+            let line_nr = line.line_col();
             let var = get_variable(line.into_inner());
 
             global_variables.insert(var.name.clone(), var);
