@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use util::path;
 mod api;
 mod cli;
 mod conf;
@@ -60,6 +61,17 @@ fn main() {
     for i in i.iter() {
         // println!("{:?}", i)
     }
+
+    let path = "/home/jonas/.cargo/bin";
+
+    let e = crate::exec::is_executable(path).unwrap();
+
+    println!("Is exec  {} bin", e);
+
+    let path = "/home/jonas/code/rust/hyperdots-cli/themeswitch-cli/src/main.rs";
+
+    let e = crate::exec::is_executable(path).unwrap();
+    println!("{}", e)
 }
 
 const _CHECK_OS: () = if cfg!(all(

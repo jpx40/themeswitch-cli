@@ -8,7 +8,7 @@ use std::ffi::CString;
 
 use libc::{c_char, c_int, faccessat, AT_FDCWD, F_OK, R_OK, W_OK, X_OK};
 
-fn is_executable(path: &str) -> std::io::Result<bool> {
+pub fn is_executable(path: &str) -> std::io::Result<bool> {
     let path = Utf8Path::new(path);
     let file = File::open(path)?;
 
@@ -24,14 +24,29 @@ fn is_executable(path: &str) -> std::io::Result<bool> {
             let d: u32 = c.to_string().parse().unwrap();
             digit[i] = d;
         }
+        println!("{:?}", path);
+        println!("{:?}", digit);
 
-        for i in digit {
-            if i > 5 {
-                out = true;
-                break;
+        let mut zero = false;
+        let mut one = false;
+        let mut two = false;
+        match digit[0] {
+            1 => {
+                zero = true;
             }
+            5 => {
+                zero = true;
+            }
+            7 => {
+                zero = true;
+            }
+            _ => {}
         }
-        out
+        if one || two || zero {
+            true
+        } else {
+            false
+        }
     };
 
     Ok(perms)
